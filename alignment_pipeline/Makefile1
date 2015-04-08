@@ -1,0 +1,46 @@
+# Pileup Makefile1
+bamFolder=../bams
+aiScript=/wsu/home/groups/piquelab/charvey/source/ASE/ai_v0.5_preprocessing.R
+#1KGSnps=/wsu/home/groups/piquelab/data/SNPs/1KGSnps.wg.cnvFilt1.uni.bed.gz
+1KGSnps=/wsu/home/groups/piquelab/data/SNPs/1KG_SNPs_filt.011614.bed.gz
+##1KGSnpsAs=/wsu/home/groups/piquelab/data/SNPs/1KGSnps.wg.cnvFilt1.uni.as1k.bed.gz
+genome=/wsu/home/groups/piquelab/data/RefGenome/hg19.fa
+transcriptFile=/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.v2.bed.gz
+
+
+
+filtStr='$$4>0 && $$5 !~ /[^\^][<>]/ && $$5 !~ /\+[0-9]+[ACGTNacgtn]+/ && $$5 !~ /-[0-9]+[ACGTNacgtn]+/ && $$5 !~ /[^\^]\*/'
+bedStr='{ print $$1,$$2-1,$$2,$$3,$$4,$$5,$$6}'
+
+Qsub.ppn=2
+Qsub.q=mmtxq
+Qsub.N=pileup
+
+.SECONDARY:
+
+# Rule to submit it as a job to the cluster 
+%.Qsub:
+	touch $@
+	echo "cd $${PWD}; make --file=Makefile1 $*" | qsub -q $(Qsub.q) -l nodes=1:ppn=$(Qsub.ppn) -N $(Qsub.N) -o $@ -e $@.e
+	sleep 1;
+
+%.pileup.gz: $(bamFolder)/%_clean.bam $(genome) $(1KGSnps)
+	samtools mpileup -f $(genome) -l $(1KGSnps) $< | bgzip > $@
+
+%.pileup.bed.gz: %.pileup.gz $(1KGSnps)
+	less $< | awk $(filtStr) | awk -v OFS='\t' $(bedStr) | sortBed -i stdin | intersectBed -a stdin -b $(1KGSnps) -wo | gzip > $@
+
+%.pileup.clean.bed.gz: %.pileup.bed.gz
+	-R --vanilla --args $^ $@ $*.pileup.loci.gz < $(aiScript) 2> $@.e
+
+all_pileups: $(patsubst $(bamFolder)/%_clean.bam,%.pileup.clean.bed.gz.Qsub,$(wildcard $(bamFolder)/*_clean.bam))
+
+%.transcripts.gz: %.q10.p10/
+	intersectBed -a $^/$*.pileup.clean.bed.gz -b $(transcriptFile) -wao -split | gzip > $@
+	
+counts_all: $(patsubst $(bamFolder)/%.bam,%.transcripts.gz,$(wildcard $(bamFolder)/*.bam))
+
+clean:
+	#rm -r $(patsubst $(bamFolder)/%.bam,%*,$(wildcard $(bamFolder)/*.bam))
+
+
