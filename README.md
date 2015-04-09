@@ -36,7 +36,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 ##### 1.) Create directories, symbolic link to fastqs, and distribute scripts for alignment
     description: create directory structure for read alignment, copy alignment/QC scripts
                  into relevant directories, & symlink to relevant .fastqs.
-    script: td/derived_data/scripts/Alignment_util_makelinks.sh 
+    script:  
     dependencies: fastq files, named by plate number such as DP1_<things here>L1_R1.fastq 
     in: A plate number, such as DP1
     out: null
@@ -70,77 +70,55 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     out: clean DP1*.pileup.clean.bed.gz files 
 
 ##### 6.) Create directories, symbolic link to pileups, and distribute scripts for QuASAR
-    description: create directory structure for QuASAR pipeline, copy QuASAR/MESH scripts
+    description: create directory structure for QuASAR pipeline, copy scripts
                  into relevant directories, & symlink to relevant *.clean.bed.gz files.
-    script: td/jointGenotyping/scripts/QuASAR_util_makeLinks.sh
-    dependencies: 5.) 
+    script: /QuASAR_pipeline/util_QuASAR_setup.sh
+    dependencies: 5.)	
     in: A plate number, such as DP1
     out: null
 
 ##### 7.) Run the QuASAR pipeline for joint genotyping and inference
     description: a full QuASAR analysis for each plate/cellLine
-    script: td/jointGenotyping/QuASAR_results_DP1/ QuASAR_pipeline_all.sh ->  QuASAR_pipeline.R
+    script: /QuASAR_pipeline/util_QuASAR_runAll.sh
+    script1: /QuASAR_pipeline/QuASAR_pipeline_all.sh
+    script2: /QuASAR_pipeline/QuASAR_pipeline.R
+    script3: /QuASAR_pipeline/QuASAR_pipeline_masterTable.R
     dependencies: 6.) & a properly formatted covariate file in td/derived_data/covariates 
     in: A plate number, such as DP1, & the name of the analysis script, QuASAR_pipeline.R
     out: QuASAR output for each plate:cellLine:treatment, plate:cellLine, QQ plots, and manhattan plots
+    ##### 8.) Add gene annotations to QuASAR output
+    ##### 9. Combine all QuASAR output into a master table
+    ##### 10. Add logFC annotations (Greg's script)    
 
-##### 8.) Add gene annotations to QuASAR output
-    description: add annotations of each gene to every heterozygote SNP identified with QuASAR
-    script: td/jointGenotyping/QuASAR_results_DP1/output/add_annotations.sh 
-    dependencies: 7.) 
-    in: null
-    out: QuASAR output tables with gene name annotation on each SNP
-
-##### 9. Combine all QuASAR output into a master table
-    description: create a master table from QuASAR output for each plate:cellLine 
-    script: td/jointGenotyping/QuASAR_results_DP1/ QuASAR_pipeline_all.sh ->  QuASAR_pipeline_masterTable.R
-    dependencies: 7.) 8.) 
-    in: A plate number, such as DP1, & the name of the analysis script, QuASAR_pipeline_masterTable.R
-    out: an output file, DP1_<cellLine>_masterTable_logFC.txt, ready to be combined into a master masterTable
-
-#### 9.a combine masterTables?
-    description:  
-    script: 
-    dependencies: 
-    in:
-    out:
-
-##### 10. Add logFC annotations (Greg's script)
-    description: annotate logFC and fpkm data to each SNP in the masterTable  
-    script: ??
-    dependencies: 10.) is succesfully completed
-    in: masterTable from 9.a
-    out: masterTable annotated with logFC and fpkm data
-
-
-##### 11. Split data for MESH and distribute to analysis directory
+##### 11. Setup directories for MESH analysis
     description: bins data based on logFC and deposits analysis data into correct MESH directory for analysis
-    script: QuASAR_assignControls.R (deprecated?)
-    script1: QuASAR_MESH_split_logFC.sh 
-    dependencies: 10.)
+    script: /MESH_pipeline/util_MESH_setup.sh
+    dependencies:
     in: master table
     out: data is split and added to the MESH analysis directory
 
-##### 12. Run the MESH pipeline
-    description: run MESH on the processed master table data, calculate posteriors, calculate bayes factors, plot data, & prep for multinomial.
-    script: td/jointGenotyping/QuASAR_results_masterTable_4/data_MESH_all/run_MESH_batch.sh 
-    script1: run_analysis.py
-    script2: calc_posteriors.R
+##### 12. Run the MESH/QuASAR processing pipeline
+    description: run MESH on the processed master table data, calculate posteriors, calculate bayes factors, & plot data
+    script: /MESH_pipeline/MESH_QuASAR_master_pipeline.sh
+    script1: /MESH_pipeline/MESH_QuASAR_master.sh
+    script2: /MESH_pipeline/MESH_QuASAR_master_assignControls.R
     dependencies: 11.) 
     in: the name of the data set to be anlaysed (should be in the same directory)
     out: MESH output, posteriors, bayes factors, configuration estimates, & input data for a multinomial analysis
 
-##### 13. Combine all MESH data 
+##### 13. Split the data on logFC
     description: Create a master table with MESH input (betas & SEs) & MESH output (bayes-factors & posteriors) 
-    script: td/jointGenotyping/QuASAR_results_masterTable_4/data_MESH_all/Master_table_betas_bfs.R
-    script1: master_MESH_outTable.sh || concatenate posterior CIs of configs and pi0
+    script: /MESH_pipeline/MESH_QuASAR_master_split.sh
     dependencies: 12.) 
     in: null
     out: Master_table_betas_bfs.txt
 
-##### 14. Plot condition specific ASE
+##### 14. Run MESH, calculate posteriors/BFs, & plot
     description: Plot condition specific ASE form MESH and QuASAR data
-    script: td/jointGenotyping/QuASAR_results_masterTable_4/data_MESH_all/MESH_plots.R
+    script: /MESH_pipeline/MESH/run_MESH_batch.sh
+    script1: /MESH_pipeline/MESH/run_analysis.py
+    script2: /MESH_pipeline/MESH/analysis.pl
+    script3: /MESH_pipeline/MESH/calc_posteriors.R
     dependencies: 13.) 
     in: Master_table_betas_bfs.txt
     out: an array of plots concerning condition specific ASE (biplots, dotplots, etc.)
