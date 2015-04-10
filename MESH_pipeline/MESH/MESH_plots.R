@@ -17,11 +17,11 @@ system('mkdir -p plots')
 ###########################################################################
 ## lets grab gene id information so we can annotate significant SNPs
 ###########################################################################
-ddgene <- read.table("~/piquelab/charvey/GxE/jointGenotyping/QuASAR_results_masterTable_4/data_logFC/QuASAR.bwa.counts.fpkm.gc.perGene.Na0s.indiv.gID.txt", header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'g.id')]
+ddgene <- read.table("MESH_QuASAR_master_logFC_controlTreat_correctlfc.txt", header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'g.id')]
 
 ###########################################################################
 ## snp | beta.con | se.con | beta.treat | se.treat | bf1 | bf2 | bf3 | post4
-dd <- read.table('MESH_masterTable_betas_bfs.txt', header=TRUE, stringsAsFactors=FALSE)
+dd <- read.table('./posteriors_bfs/MESH_masterTable_betas_bfs.txt', header=TRUE, stringsAsFactors=FALSE)
 
 ###########################################################################
 ## forest plot of betas for treatment only ASE
