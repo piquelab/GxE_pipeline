@@ -38,14 +38,14 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 ##### 2.) Align reads, merge across barcodes, & do read counts 
     description: align fastq files, merge barcodes, quality filter, then remove 
                  duplicates. Do read counts at each stage of filtering
-    script: /alignemnt_pipeline/bams/Makefile 
+    script: /alignment_pipeline/bams/Makefile 
     dependencies: the folder ../fastqs with symlinked fastqs.
     in: null
     out: clean bam files & .txt files with read counts from each stage of filtering
 
 ##### 3.) Combine read counts from all stages of filtering
     description: creates a histogram & table from read counts at each stage of .bam processing
-    script: /alignemnt_pipeline/counts_QC_logs.sh 
+    script: /alignment_pipeline/counts_QC_logs.sh 
     scripts: counts_QC_logs.R  
     dependencies: 2.) 
     in: A plate number, such as DP1
@@ -53,7 +53,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 
 ##### 4.) Gene counts using DESeq2
     description: use DESeq2 to measure gene expression, at the transcript level, from processed bams
-    script: /alignemnt_pipeline/counts_DEG.sh 
+    script: /alignment_pipeline/counts_DEG.sh 
     script1: counts_DEG.R
     dependencies: 2.) 
     in: A plate number, such as DP1
@@ -61,7 +61,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 
 ##### 5.) Make pileups for QuASAR
     description: make pileup/bed files from each clean bam file
-    script: /alignemnt_pipeline/Makefile1
+    script: /alignment_pipeline/Makefile1
     dependencies: 2.) 
     in: null
     out: clean DP1*.pileup.clean.bed.gz files 
