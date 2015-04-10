@@ -31,8 +31,9 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
                  into relevant directories, & symlink to relevant .fastqs.
     script: /alignemnt_pipeline/util_Alignment_setup.sh
     dependencies: fastq files, named by plate number such as DP1_<things here>L1_R1.fastq 
-    in: A plate number, such as DP1
+    in: A plate number, such as P1
     out: null
+    notes: -w flag sets up a WASP pipeline
 
 ##### 2.) Align reads, merge across barcodes, & do read counts 
     description: align fastq files, merge barcodes, quality filter, then remove 
@@ -70,7 +71,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
                  into relevant directories, & symlink to relevant *.clean.bed.gz files.
     script: /QuASAR_pipeline/util_QuASAR_setup.sh
     dependencies: 5.)	
-    in: A plate number, such as DP1
+    in: A plate number, such as P1
     out: null
 
 ##### 7.) Run the QuASAR pipeline for joint genotyping ASE inference
@@ -81,7 +82,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     script3: /QuASAR_pipeline/QuASAR_pipeline.R
     script4: /QuASAR_pipeline/QuASAR_pipeline_masterTable.R
     dependencies: 6.) & a properly formatted covariate file  
-    in: A plate number, such as DP1, & the name of the analysis script, QuASAR_pipeline.R
+    in: A plate number, such as DP1, & the name of the analysis scripeline.R
     out: QuASAR output for each plate:cellLine:treatment, plate:cellLine, QQ plots, and manhattan plots
     notes: gene annotations fro all SNPs are done at the QuASAR step resulting in *_newLogFC.txt.tid
 
@@ -99,7 +100,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     script1: /MESH_pipeline/MESH_QuASAR_master.sh
     script2: /MESH_pipeline/MESH_QuASAR_master_assignControls.R
     dependencies: 7.) 8.) 
-    in: null
+    in: directory with all plate specific analysis ex: /jointGenotyping/
     out: Master_table_betas_bfs.txt
 
 ##### 10.) Split master table data on logFC for MESH analysis
