@@ -2,7 +2,7 @@
 set -v 
 set -e
 
-platenumb=$1 
+platenum=$1 
 
 if [ "$2" = "-w" ] 
 then
