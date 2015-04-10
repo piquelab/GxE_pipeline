@@ -17,7 +17,7 @@ system('mkdir -p plots')
 ###########################################################################
 ## lets grab gene id information so we can annotate significant SNPs
 ###########################################################################
-ddgene <- read.table("MESH_QuASAR_master_logFC_controlTreat_correctlfc.txt", header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'g.id')]
+ddgene <- read.table("../data_logFC/MESH_QuASAR_master_logFC_controlTreat_correctlfc.txt", header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'g.id')]
 
 ###########################################################################
 ## snp | beta.con | se.con | beta.treat | se.treat | bf1 | bf2 | bf3 | post4
