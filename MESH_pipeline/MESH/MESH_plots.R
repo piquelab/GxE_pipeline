@@ -21,7 +21,7 @@ ddgene <- read.table("../data_logFC/MESH_QuASAR_master_logFC_controlTreat_correc
 
 ###########################################################################
 ## snp | beta.con | se.con | beta.treat | se.treat | bf1 | bf2 | bf3 | post4
-dd <- read.table('./posteriors_bfs/MESH_masterTable_betas_bfs.txt', header=TRUE, stringsAsFactors=FALSE)
+dd <- read.table('./posteriors_bfs/Master_table_betas_bfs.txt', header=TRUE, stringsAsFactors=FALSE)
 
 ###########################################################################
 ## forest plot of betas for treatment only ASE
