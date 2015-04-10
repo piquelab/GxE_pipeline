@@ -76,6 +76,37 @@ for(ii in 1:n.samples){
   write.table(bfs_out, file=paste(myDir, '/', root, '_bayesFactors.txt', sep=''), quote=FALSE, row.names=TRUE, sep='\t')
 
 }
+
+############################################################################################
+## create a master table with MESH input (betas & SEs) & MESH output (bayes-factors & posteriors)
+############################################################################################
+#install.packages('data.table')
+library(data.table)
+
+## capture MESH input
+meshinput <- scan(pipe('ls allPlates_*.txt'), character(0))
+dfbetas <- read.table(meshinput, stringsAsFactors=FALSE, header=FALSE)  
+dfbetas_wide <- data.frame(dfbetas[seq(1, dim(dfbetas)[1], 2), c(1, 3, 4)], dfbetas[seq(2, dim(dfbetas)[1], 2), c(3, 4)])
+dtbetas <- data.table(dfbetas_wide)
+setnames(dtbetas, c('snp', 'beta.c', 'se.c', 'beta.t', 'se.t'))
+setkey(dtbetas, snp)
+
+## capture Bayes Factors
+dfbfs <- read.table("posteriors_bfs/allPlates_allQuAlblfilt_bayesFactors_flatp.txt", stringsAsFactors=FALSE, header=TRUE)
+dtbfs <- data.table(dfbfs)
+setkey(dtbfs, snp)
+
+## capture posteriors
+dfpost <- read.table("posteriors_bfs/allPlates_allQuAlblfilt_posteriors_flatp.txt", stringsAsFactors=FALSE, header=TRUE)
+dtpost <- data.table(dfpost)
+setkey(dtpost, snp)
+
+## check the size of tables that have been loaded
+tables()
+
+dtfull <- dtbetas[dtbfs[dtpost]]
+write.table(dtfull, file='./posteriors_bfs/Master_table_betas_bfs.txt', quote=FALSE, col.names=TRUE, row.names=FALSE)
+
 ##         ##
 ## THE END ##
 ##         ##
