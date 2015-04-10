@@ -2,7 +2,14 @@
 set -v
 set -e
 
-plate=$1
+platenum=$1
+
+if [ "$2" = "-w" ] 
+then
+  plate=$1-WASP;
+else
+  plate=$1;
+fi
 
 ## results directory & QuASAR scripts
 mkdir -p ../../jointGenotyping/QuASAR_results_${plate}/data
