@@ -85,6 +85,7 @@ library(data.table)
 
 ## capture MESH input
 meshinput <- scan(pipe('ls allPlates_*.txt'), character(0))
+if(length(meshinput) != 1){stop("Pipeline is set to process a single partition of data.")}
 dfbetas <- read.table(meshinput, stringsAsFactors=FALSE, header=FALSE)  
 dfbetas_wide <- data.frame(dfbetas[seq(1, dim(dfbetas)[1], 2), c(1, 3, 4)], dfbetas[seq(2, dim(dfbetas)[1], 2), c(3, 4)])
 dtbetas <- data.table(dfbetas_wide)
