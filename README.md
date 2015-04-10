@@ -73,6 +73,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     dependencies: 5.)	
     in: A plate number, such as P1
     out: null
+    notes: -w flag sets up a WASP pipeline
 
 ##### 7.) Run the QuASAR pipeline for joint genotyping ASE inference
     description: a full QuASAR analysis for each plate/cellLine
