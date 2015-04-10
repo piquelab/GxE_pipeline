@@ -116,7 +116,8 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     script: /MESH_pipeline/MESH/run_MESH_batch.sh
     script1: /MESH_pipeline/MESH/run_analysis.py
     script2: /MESH_pipeline/MESH/analysis.pl
-    script3: /MESH_pipeline/MESH/calc_posteriors.R
+    script3: /MESH_pipeline/MESH/MESH_calc_posteriors.R
+    script4: /MESH_pipeline/MESH/MESH_plots.R
     dependencies: 10.) 
     in: Master_table_betas_bfs.txt
     out: an array of plots concerning condition specific ASE (biplots, dotplots, etc.)
