@@ -93,12 +93,12 @@ setnames(dtbetas, c('snp', 'beta.c', 'se.c', 'beta.t', 'se.t'))
 setkey(dtbetas, snp)
 
 ## capture Bayes Factors
-dfbfs <- read.table("posteriors_bfs/allPlates_allQuAlblfilt_bayesFactors_flatp.txt", stringsAsFactors=FALSE, header=TRUE)
+dfbfs <- read.table("posteriors_bfs/allPlates_allSNPs_bayesFactors.txt", stringsAsFactors=FALSE, header=TRUE)
 dtbfs <- data.table(dfbfs)
 setkey(dtbfs, snp)
 
 ## capture posteriors
-dfpost <- read.table("posteriors_bfs/allPlates_allQuAlblfilt_posteriors_flatp.txt", stringsAsFactors=FALSE, header=TRUE)
+dfpost <- read.table("posteriors_bfs/allPlates_allSNPs_posteriors.txt", stringsAsFactors=FALSE, header=TRUE)
 dtpost <- data.table(dfpost)
 setkey(dtpost, snp)
 
