@@ -29,7 +29,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 ##### 1.) Create directories, symbolic link to fastqs, and distribute scripts for alignment
     description: create directory structure for read alignment, copy alignment/QC scripts
                  into relevant directories, & symlink to relevant .fastqs.
-    script: /alignemnt_pipeline/util_Alignment_setup.sh
+    script: /alignment_pipeline/util_Alignment_setup.sh
     dependencies: fastq files, named by plate number such as DP1_<things here>L1_R1.fastq 
     in: A plate number, such as P1
     out: null
