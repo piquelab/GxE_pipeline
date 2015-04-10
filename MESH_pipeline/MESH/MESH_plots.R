@@ -103,6 +103,165 @@ p + geom_abline(intercept=0, slope=0, colour='red',linetype=4) +
 dev.off()
 write.table(plotdat_control, file="./plots/Mesh_allBetas_control_config.txt", col.names=TRUE, row.names=FALSE, quote=FALSE)
 
+#############################################################################################################################
+dd$z.con <- dd$beta.c/dd$se.c
+dd$z.treat <- dd$beta.t/dd$se.t
+dd$z.ind <- ((dd$z.treat^2 + dd$z.con^2)>4)
+
+dd_filt <- dd[dd$post_c4<.5, ]
+dd_filt$ASE <- sapply(1:(dim(dd_filt)[1]), function(row){
+  if((dd_filt[row, 'bf_c1']-dd_filt[row, 'bf_c3'])>1 & dd_filt[row, 'bf_c1']>2){
+    'control'  ## control only ASE
+  } else if ((dd_filt[row, 'bf_c2']-dd_filt[row, 'bf_c3'])>1 & dd_filt[row, 'bf_c2']>2){
+    'treatment'  ## treatment only ASE
+  } else{
+    '~'  ## no ASE
+  }
+  })
+
+bf.cutoff <- 2
+
+system('mkdir -p plots')
+
+##
+pdf('./plots/Mesh_bf4_posteriorProb_hist.pdf')
+ggplot(dd, aes(x=post_c4)) + geom_histogram(binwidth=0.01) +
+  labs(title="Posterior of BF4 per SNP") +
+  geom_vline(xintercept=median(dd$post_c4), colour="red", size=0.7, lty=2) +
+  annotate("text", x=.75, y=150000, label="median post(BF4)=.96", colour='red')
+dev.off()
+
+## all ASE z-scores coloured by BF
+pdf('./plots/Mesh_zscores_allASE_stringent_cutOff.5.pdf')
+#png('./plots/Mesh_zscores_allASE_stringent_cutOff.5.png')
+p <- ggplot(dd_filt, aes(z.con, z.treat, color=ASE))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("transparent", "blue", "red")) + 
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Z-scores with Posterior(BF4)<0.5", x="Control Z score", y="Treatment Z score")
+dev.off()
+
+
+## bi-plot with z-scores coloured by BF4
+pdf('./plots/Mesh_zscores_BF4.cutOff.5.pdf')
+#png('./plots/Mesh_zscores_BF4.cutOff.5.png')
+p <- ggplot(dd, aes(z.con, z.treat))
+p + geom_point(size=2) + 
+  theme_bw() +
+  #scale_colour_gradient2(midpoint=0.5, high='white', low='red') +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Z-scores with Posterior(BF4)<0.5", x="Control Z score", y="Treatment Z score")
+dev.off()
+
+## control ASE
+pdf('./plots/Mesh_zscores_controlASE.pdf')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c1>bf.cutoff)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "blue")) + 
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Control ASE", x="Control Z score", y="Treatment Z score", color="log10(BF.1)>2")
+dev.off()
+
+## treatment ASE
+pdf('./plots/Mesh_zscores_treatmentASE.pdf')
+#png('./plots/Mesh_zscores_treatmentASE.png')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c2>bf.cutoff)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "red")) +
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Treatment ASE", x="Control Z score", y="Treatment Z score", color="log10(BF.2)>2")
+dev.off()
+
+## more stringent cutoffs ##
+## control ASE
+pdf('./plots/Mesh_zscores_controlASE_stringent1.pdf')
+#png('./plots/Mesh_zscores_controlASE_stringent1.png')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=((bf_c1-bf_c3)>1 & bf_c1>2)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "blue")) + 
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Control ASE", x="Control Z score", y="Treatment Z score", color="(log10(bf1)-log10(bf3))>1 & log10(bf1)>2)")
+dev.off()
+
+## more stringent cutoffs ##
+## treatment ASE
+pdf('./plots/Mesh_zscores_treatmentASE_stringent1.pdf')
+#png('./plots/Mesh_zscores_treatmentASE_stringent1.png')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=((bf_c2-bf_c3)>1 & bf_c2>2)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "red")) + 
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Treatment ASE", x="Control Z score", y="Treatment Z score", color="(log10(bf2)-log10(bf3))>1 & log10(bf2)>2)")
+dev.off()
+
+## control only ASE
+pdf('./plots/Mesh_zscores_controlOnlyASE.pdf')
+#png('./plots/Mesh_zscores_controlOnlyASE.png')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c1>bf.cutoff & bf_c3<bf.cutoff)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "blue")) +
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Control Only ASE", x="Control Z score", y="Treatment Z score", color="log10(BF.1)>2 & log10(BF.3)<2")
+dev.off()
+
+## treatment only ASE
+pdf('./plots/Mesh_zscores_treatmentOnlyASE.pdf')
+#png('./plots/Mesh_zscores_treatmentOnlyASE.png')
+p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c2>bf.cutoff & bf_c3<bf.cutoff)))
+p + layer(geom="point", geom_params=list(size=2)) +
+  scale_color_manual(values=c("black", "red")) +
+  theme_bw() +
+  theme(legend.position="bottom",
+        legend.direction="horizontal",
+        legend.key=element_blank(),
+        plot.title=element_text(angle=0,size=16,face="bold"),
+        axis.title.x=element_text(color="black", size=14),
+        axis.title.y=element_text(color="black", size=14)) +
+  labs(title="Treatment Only ASE", x="Control Z score", y="Treatment Z score",  color="log10(BF.2)>2 & log10(BF.3)<2")
+dev.off()
+
+
 ##         ##
 ## THE END ##
 ##         ##
