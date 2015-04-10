@@ -108,7 +108,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
     description: Split master table on the level of logFC output to MESH analysis folder
     script: /MESH_pipeline/MESH_QuASAR_master_split.sh
     dependencies: 9.) 
-    in: Master_table_betas_bfs.txt
+    in: name of master table to split. ex: Master_table_betas_bfs.txt
     out: an array of plots concerning condition specific ASE (biplots, dotplots, etc.)
 
 ##### 11.) Run the MESH pipeline for condition specific ASE
