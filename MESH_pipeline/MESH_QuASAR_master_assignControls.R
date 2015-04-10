@@ -99,6 +99,8 @@ names(treat_dat) <- c('plate', 'cell.line', 'treatment', 'chr', 'pos0', 'pos', '
         ## merge 
         totaldata <- merge(cont_dat, this_treat, by='rsID')
         names(totaldata) <- c('rsID', 'cont', 'beta.con', 'se.con', 'treat', 'beta.treat', 'se.treat', 'logFC')
+        rsIDtemp <- totaldata$rsID
+        totaldata$rsID <- paste(plate, line, rsIDtemp, totaldata$treat, sep=':')
         totaldata
         
       }))
