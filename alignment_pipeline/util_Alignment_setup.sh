@@ -44,7 +44,7 @@ for bc in {1..96}; do
 		| awk '{print $0,NR}' \
 		| while read f r; do  
 			b=${f//R1/R2}; 
-			echo "D${plate}-HT${bc}_L${r}";
+			echo "D${platenum}-HT${bc}_L${r}";
 			ln -s $f D${platenum}-HT${bc}_L${r}_R1.fastq.gz; 
 			ln -s $b D${platenum}-HT${bc}_L${r}_R2.fastq.gz; 
 		done; 
