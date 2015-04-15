@@ -4,8 +4,10 @@ set -v
 set -e
 
 data=$1
+
 ## tag is just to identify which cutoff was used to split the data
 tag=2.0 
+
 outdir=../analysis_$tag
 mkdir -p $outdir
 
