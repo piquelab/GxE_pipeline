@@ -126,6 +126,7 @@ library(data.table)
 
 ## capture MESH input
 meshinput <- scan(pipe('ls allPlates_*.txt'), character(0))
+tag <- gsub(".txt", "", gsub("allPlates_", "", meshinput))
 if(length(meshinput) != 1){stop("Pipeline is set to process a single partition of data.")}
 dfbetas <- read.table(meshinput, stringsAsFactors=FALSE, header=FALSE)  
 dfbetas_wide <- data.frame(dfbetas[seq(1, dim(dfbetas)[1], 2), c(1, 3, 4)], dfbetas[seq(2, dim(dfbetas)[1], 2), c(3, 4)])
@@ -134,12 +135,14 @@ setnames(dtbetas, c('snp', 'beta.c', 'se.c', 'beta.t', 'se.t'))
 setkey(dtbetas, snp)
 
 ## capture Bayes Factors
-dfbfs <- read.table("posteriors_bfs/allPlates_allSNPs_bayesFactors.txt", stringsAsFactors=FALSE, header=TRUE)
+bffile <- paste0("posteriors_bfs/allPlates_", tag, "_bayesFactors.txt")
+dfbfs <- read.table(bffile, stringsAsFactors=FALSE, header=TRUE)
 dtbfs <- data.table(dfbfs)
 setkey(dtbfs, snp)
 
 ## capture posteriors
-dfpost <- read.table("posteriors_bfs/allPlates_allSNPs_posteriors.txt", stringsAsFactors=FALSE, header=TRUE)
+postfile <- paste0("posteriors_bfs/allPlates_", tag, "_posteriors.txt")
+dfpost <- read.table(postfile, stringsAsFactors=FALSE, header=TRUE)
 dtpost <- data.table(dfpost)
 setkey(dtpost, snp)
 
