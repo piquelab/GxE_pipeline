@@ -19,16 +19,17 @@ library(ggplot2)
 #install_github('piquelab/multiclassLR')
 #install_github('ctharve/multiclassLR')
 library('multiclassLR')
-source("./TestFunctions_cf1cf2.R")
+#source("./TestFunctions_cf1cf2.R")
+source("~/piquelab/charvey/source/multiclassLR/R/TestFunctions.R")
 
-cargs <- commandArgs(trail=TRUE);
+ cargs <- commandArgs(trail=TRUE);
 if(length(cargs)>=1)
   dat.file <- cargs[1]
 if(length(cargs)>=2)
   tag <- cargs[2]
 
 # dat.file <- "masterTable_multinomial.txt"
-# tag <- "cf1cf2"
+# tag <- "2.0"
   
 ## directory for all plots
 plot.dir <- "multinomialPlots"
@@ -83,19 +84,19 @@ var.names.ni <- VarNames(X.ni, configurations)
 ## we need to check all parameters before running
 multifinal.ni <- MyMultinomial.ni(intercepts=io.betas, parms=initweights, X.ni, Y.ni, var.names.ni, cf1cf2=TRUE, maxit=1E5)
 
-save(multifinal.ni, file=paste0("multifinal.ni_", tag, ".RData"))
+save(multifinal.ni, file=paste0("multifinal.ni_", tag, "_cf1cf2.RData"))
 
 plot_dat <- CreatePlotDat(multifinal.ni)
-plot.title <- paste0("multinomial_parms_", tag, ".pdf")
+plot.title <- paste0("multinomial_parms_", tag, "_cf1cf2.pdf")
 PlotMultiForest(plot_dat, plot.title, plot.dir)
 
 plot_dat <- CreatePlotDat(multifinal.ni, sig.parms=TRUE)
-plot.title <- paste0("multinomial_parms_sig_", tag, ".pdf")
+plot.title <- paste0("multinomial_parms_sig_", tag, "_cf1cf2.pdf")
 PlotMultiForest(plot_dat, plot.title, plot.dir)
 
 ## output table
 sigout <- data.frame(format(multifinal.ni$results$dat.sig, digits=5, scientific=TRUE))
-write.table(sigout, file="multinomial_parms_sig_", tag, ".txt", row.names=TRUE, quote=FALSE, sep='\t')
+write.table(sigout, file=paste0("multinomial_parms_sig_", tag, "_cf1cf2.txt"), row.names=TRUE, quote=FALSE, sep='\t')
 
 ##         ##
 ## THE END ##

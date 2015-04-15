@@ -28,7 +28,7 @@ if(length(cargs)>=2)
   tag <- cargs[2]
 
 # dat.file <- "masterTable_multinomial.txt"
-# tag <- "all"
+# tag <- "2.0"
   
 ## directory for all plots
 plot.dir <- "multinomialPlots"
@@ -127,11 +127,6 @@ initweights <- InitialWeights(X.ni, classes.io)
 configurations <- c('_cf1', '_cf2', '_cf3') ## should probably use class labs here
 var.names.ni <- VarNames(X.ni, configurations)
 
-## need to compare 
-#outbase <- list(intercepts=io.betas, parms=initweights, X=X.ni, Y=Y.ni, vnames=var.names.ni) 
-#save(outbase, file="indata_outbase.Rdata")
-##
-
 ## run model with initial intercepts
 ## we need to check all parameters before running
 multifinal.ni <- MyMultinomial.ni(intercepts=io.betas, parms=initweights, X.ni, Y.ni, var.names.ni)
@@ -147,7 +142,7 @@ PlotMultiForest(plot_dat, plot.title, plot.dir)
 
 ## output table
 sigout <- data.frame(format(multifinal.ni$results$dat.sig, digits=5, scientific=TRUE))
-write.table(sigout, file="multinomial_parms_sig_", tag, ".txt", row.names=TRUE, quote=FALSE, sep='\t')
+write.table(sigout, file=paste0("multinomial_parms_sig_", tag, ".txt"), row.names=TRUE, quote=FALSE, sep='\t')
 
 ##         ##
 ## THE END ##
