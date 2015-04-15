@@ -107,7 +107,7 @@ n.samples <- length(parmfiles)
     myDir <- './multinomial'
     system(paste0('mkdir -p ', myDir))
     system(paste0(
-      'cp /wsu/home/groups/piquelab/charvey/GxE/jointGenotyping/scripts/multinomial_pipeline/* ', myDir))
+      'cp /wsu/home/groups/piquelab/charvey/GxE/GxE_pipeline/multiclasslr_pipeline/* ', myDir))
 
     write.table(
       multidat_out,
