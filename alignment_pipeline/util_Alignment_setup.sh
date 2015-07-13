@@ -33,14 +33,20 @@ cp Makefile1 $root/pileups
 cd $root/fastqs
 pwd
 
+if [[ $platenum == "D"* ]]; then
+    platenum1=${platenum//D/}; 
+    findstrprefix=D*${platenum1};
+else
+    findstrprefix=$platenum
+fi
+
 for bc in {1..96}; do 
-        platenum1=${platenum//D/} 
-        find /wsu/home/groups/piquelab/OurData/ -name "D*${platenum1}-HT${bc}_*R1*.fastq.gz" \
-		| awk '{print $0,NR}' \
-		| while read f r; do  
-			b=${f//R1/R2}; 
-			echo "${platenum}-HT${bc}_L${r}";
-			ln -s $f ${platenum}-HT${bc}_L${r}_R1.fastq.gz; 
-			ln -s $b ${platenum}-HT${bc}_L${r}_R2.fastq.gz; 
-		done; 
+    find /wsu/home/groups/piquelab/OurData/ -name "${findstrprefix}-HT${bc}_*R1*.fastq.gz" \
+    	| awk '{print $0,NR}' \
+    	| while read f r; do  
+    	    b=${f//R1/R2}; 
+    	    echo "${platenum}-HT${bc}_L${r}";
+    	    ln -s $f ${platenum}-HT${bc}_L${r}_R1.fastq.gz; 
+    	    ln -s $b ${platenum}-HT${bc}_L${r}_R2.fastq.gz; 
+    done; 
 done;
