@@ -13,9 +13,10 @@ all:
 	echo $(sortedBams)
 
 %.Qsub:
+	while ((`qme | wc -l` > 100)); do sleep 1; done
 	touch $@
 	echo "cd $${PWD}; make $*" | qsub -q $(Qsub.q) -l nodes=1:ppn=$(Qsub.ppn) -N $(Qsub.N) -o $@ -e $@.e
-	sleep 1;
+	sleep 1;	
 
 all_bams: $(patsubst $(fastqs)/%_R1.fastq.gz,%.bam.Qsub,$(wildcard $(fastqs)/*_R1.fastq.gz))
 
