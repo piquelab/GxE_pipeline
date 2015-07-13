@@ -7,7 +7,24 @@
 require('ggplot2')
 #library(ggplot2)
 
-source('~/piquelab/charvey/source/aseR/aseSuite_functions_v0.0.R')
+##################################################################
+## takes a list of inference results and recursively merges them
+## across common variables
+##################################################################
+MergeList <-  function(index, list, mergeCol){
+  stopifnot(index >= 2)
+  stopifnot(is.list(list))
+  l.len <- length(list)
+  stopifnot(l.len >= 2)
+  cat(paste("Merging sample ", l.len, " \n",sep=""))
+  if(l.len==2){
+    return(merge(list[[2]][, c(1, index)], list[[1]][, c(1, index)], by = mergeCol, all=TRUE))
+  }else{
+    temp <- list[[l.len]]
+    list[[l.len]] <- NULL
+    merge(temp[, c(1, index)], Recall(index, list, mergeCol), by = mergeCol, all=TRUE)
+  }
+}
 
 #x11(display="localhost:10.0" ,type="Xlib")
 
@@ -35,7 +52,7 @@ all_counts <- lapply(filters, function(this_filter){
 })
 names(all_counts) <- filters
 
-counts_merged <- MergeList(2, all_counts, mergeCol='sample')
+counts_merged <- MergeList(2, all_counts, mergeCol = 'sample')
 names(counts_merged) <- c('sample', filters[c(3, 2, 1)])
 n.barcodes <- dim(counts_merged)[1]
 
