@@ -69,11 +69,15 @@ my.plot <- ggplot(counts_long, aes(x=barcode, y=counts, fill=filter))
 my.plot + geom_bar(position='dodge', stat='identity') + ggtitle(paste(platePrefix, ' QC counts',sep='')) + theme_bw()
 dev.off()
 
-cov.file <- paste('../../../covariates/GxE_', platePrefix, '_covariates.txt', sep='')
+cov.file <- paste('../../../covariates/GxE_', gsub('DP', 'P', platePrefix),
+                  '_covariates.txt', sep='')
 covariates <- read.table(cov.file, header=TRUE, sep='\t')
 cov_short <- covariates[, c('Plate.ID', 'Barcode.ID', 'CellLine', 'Treatment.ID')]
 names(counts_merged) <- c('Barcode.ID', filters[c(3, 2, 1)])
 out_data <- merge(cov_short, counts_merged, by='Barcode.ID')
+if ( strtrim(platePrefix, 2) == "DP" ) {
+  out_data$Plate.ID <- platePrefix
+}
 
 write.table(out_data, file=paste(platePrefix, '_QC_counts.txt', sep=''), quote=FALSE, row.names=FALSE, sep='\t')
 
