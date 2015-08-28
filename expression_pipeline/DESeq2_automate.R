@@ -39,12 +39,13 @@ register(MulticoreParam(cores))
 LPG <- Sys.getenv("LPG")
 
 ## Gene counts: this is our data for anlaysis
-readCounts <- paste('../../derived_data/', platePrefix, '/counts/GC/', platePrefix, '.data.Rd', sep='')
+readCounts <- paste('../../derived_data/', platePrefix, '/counts/GC/',
+                    platePrefix, '.data.Rd', sep='')
 load(readCounts)
 n.barcodes <- dim(data)[2]
 
 ## master list of treatment names and IDs
-treatmentKey <- read.table(paste('../../derived_data/covariates/GxE_treatment_key.txt', sep=''),
+treatmentKey <- read.table(paste('../treatmentKey.txt', sep=''),
                            as.is=TRUE, header=TRUE)
 row.names(treatmentKey) <- treatmentKey$Treatment_ID
 
@@ -166,6 +167,7 @@ table(cv$Treatment.ID,cv$CellLine)
 ## Preparing data for DEseq:
 ## Combine processed data into a DESeqDataSet
 ## & remove genes with very low coverage/expression 
+
 allColSamples <- paste(cv$CellLine, cv$Treatment.ID, sep=".")
 cat("#",allColSamples,"\n")
 ddsFull <- DESeqDataSetFromMatrix(
@@ -178,8 +180,7 @@ ddsFull <- ddsFull[keep,]
 ## Fit the model on the whole plate
 system.time(ddsFull <- DESeq(ddsFull,parallel=TRUE))
 
-## New filter, each transcript must have > 1 read in each control
-## Implemented in the loop below, must be done per control
+## Contrast each treatment to its respective control
 res <- ParallelSapply(TreatmentOnlyLevels,function(t){
 
   ## Select appropiate control for this treatment
