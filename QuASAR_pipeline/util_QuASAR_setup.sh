@@ -19,4 +19,5 @@ cp util_QuASAR_runAll.sh ../../jointGenotyping/
 
 ## link to all files for analysis
 cd ../../jointGenotyping/QuASAR_results_${plate}/data
-ls /wsu/home/groups/piquelab/charvey/GxE/derived_data/${plate}/pileups/*.clean.bed.gz | while read f; do ln -sv $f; done
+ls ../../../derived_data/${plate}/pileups/*.pileup.clean.bed.gz | while read f; do ln -sv $f; done
+

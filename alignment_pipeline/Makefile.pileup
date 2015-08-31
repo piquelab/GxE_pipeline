@@ -25,10 +25,10 @@ Qsub.N=pileup
 %.pileup.bed.gz: %.pileup.gz $(1KGSnps)
 	less $< | awk $(filtStr) | awk -v OFS='\t' $(bedStr) | sortBed -i stdin | intersectBed -a stdin -b $(1KGSnps) -wo | gzip > $@
 
-%.quasar.in.gz: %.pileup.bed.gz
+%.pileup.clean.bed.gz: %.pileup.bed.gz
 	-R --vanilla --args $^ $@ < $(aiScript) 2> $@.e
 
-all_pileups: $(patsubst $(bamFolder)/%_clean.bam,%.quasar.in.gz.Qsub,$(wildcard $(bamFolder)/*_clean.bam))
+all_pileups: $(patsubst $(bamFolder)/%_clean.bam,%.pileup.clean.bed.gz.Qsub,$(wildcard $(bamFolder)/*_clean.bam))
 
 counts_all: $(patsubst $(bamFolder)/%.bam,%.transcripts.gz,$(wildcard $(bamFolder)/*.bam))
 

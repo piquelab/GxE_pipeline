@@ -45,9 +45,8 @@ load(readCounts)
 n.barcodes <- dim(data)[2]
 
 ## master list of treatment names and IDs
-treatmentKey <- read.table(paste('../treatmentKey.txt', sep=''),
-                           as.is=TRUE, header=TRUE)
-row.names(treatmentKey) <- treatmentKey$Treatment_ID
+treatmentKey <- read.table(paste('../treatmentKey.txt', sep=''), sep='\t',
+                           as.is=TRUE, header=TRUE, comment.char="")
 
 ##################################################################
 ## assign variables, load data, and load experiment information

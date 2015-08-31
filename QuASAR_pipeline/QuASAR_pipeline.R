@@ -2,35 +2,20 @@
 ## Software suite for joint genotyping and ASE inference on multiple
 ## experiments and samples
 ##
-## Created 07.14.2014 
-## changes from *meshprep: all controls are co
-##
-## derived from aseSuite_v0.0_D1P6_meshprep2.R
-## Author: CTH
-##
-## Version 0.0: Preliminary
 ## Arguments: plate, cell.line, covariate.file, pileup.dir, out.dir
 ## Return Values: Genotypes, model.convergence, inference, metaData
 ##################################################################
-## automate this in a Python or shell script
+
+## 
 LPG <- '/wsu/home/groups/piquelab'
-## make sure to include a directory to download and source all external packages
-## in stampede
-#myRlib <- paste(LPG, '/charvey/tools/Rlib', sep='')
-## helper functions for data processing
-#source(paste(LPG, '/charvey/GxE/jointGenotyping/scripts/aseSuite_functions_v0.0.R', sep=''))
-## ASE model fitting functions funtions 
-#source(paste(LPG, '/charvey/source/ASE/fitAseModels.v4.R', sep=''))
-## qqplot functions
-source(paste(LPG, '/gmb/AI/results/qqman.r', sep=''))
 
 ##################################################################
 #library('ggplot2', lib.loc=myRlib)
 library('QuASAR')
 library('ggplot2')
+library(qqman)
 require(qvalue)
-#library(magrittr)
-## x11(display="localhost:11.0" ,type="Xlib")
+
 
 ##################################################################
 ## use the covariate table and use the barcodes to select samples
@@ -54,7 +39,7 @@ system('mkdir -p plots/QC/manhattan')
 ##################################################################    
 output.folder <- paste('./output',sep='')
 ## extract covariates table
-cov.file <- paste('~/piquelab/scratch/charvey/GxE/derived_data/covariates/GxE_', plate, '_covariates.txt', sep='')
+cov.file <- paste('../../derived_data/covariates/GxE_', plate, '_covariates.txt', sep='')
 cv <- read.table(file=cov.file, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 cv$Treatment <- gsub(' ',  '_', cv$Treatment)
 cov.file <- cv[cv$Plate.ID==plate & cv$CellLine==cell.line, ]
@@ -152,11 +137,10 @@ for(ii in (1:n.treatments)){
 	oraf <- ase.dat$ref[, ii]/(ase.dat$ref[, ii]+ase.dat$alt[, ii])
 	chr <- ase.dat$anno$chr
 	sName <- treatment.IDs[ii]
-
 	chrCol <- rep(c("orange","darkblue"),length(chrList))[1:length(chrList)]
 	names(chrCol) <- chrList
 	pdf.file <- paste('./plots/QC/manhattan/', plate, '_', cell.line, '_', sName, '_',  ii, '_QC_manhattan.pdf', sep='')	
-	pdf(file=pdf.file,width=800,height=400)
+	pdf(file=pdf.file,width=16,height=8)
 	layout(t(c(1,1,1,2)))
 	par(cex=1.0)
 	oldmar <- par("mar")
@@ -165,7 +149,7 @@ for(ii in (1:n.treatments)){
 	par(mar=mar)
 	ind2 <- ind & (abs(af-0.5)<0.4)
 	##x <- 1:sum(ind2)
-	plot(oraf[ind2],xlab="Chromosome order",ylab="Obs. reference allele Freq.",pch='.',cex=3,col=chrCol[chr[ind2]],axes=F)
+	plot(oraf[ind2],xlab="",ylab="Obs. reference allele Freq.",pch='.',cex=3,col=chrCol[chr[ind2]],axes=F)
 	axis(2)
 	x.at <- c(which(!duplicated(chr[ind2])),sum(ind2))
 	axis(1,at=x.at,labels=FALSE,cex=0.3)
