@@ -76,7 +76,7 @@ all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_qua
 	samtools index $@
 	samtools view -c $@ > $*_snpFilt.count.txt
 
-%_clean.bam: %_quality.remap.keep.merge.bam
+%_clean.bam: %_snpFilt.bam
 	python $(waspDir)/mapping//rmdup_pe.py $^ $*_rmdup.bam
 	samtools sort $*_rmdup.bam $@
 	samtools index $@
@@ -87,6 +87,6 @@ clean:
 	rm *sorted*
 	rm *merged*
 	rm *quality*
-	rm *mapw*
 	rm *remap*
+	rm *snpFilt*
 	rm *clean*
