@@ -28,7 +28,8 @@ fi
 
 cp counts_DEG.* $root/counts/GC
 cp counts_QC_logs.* $root/counts/QC
-cp Makefile1 $root/pileups
+cp Makefile.pileup $root/pileups/Makefile
+cp ai_preprocessing.R $root/pileups
 
 cd $root/fastqs
 pwd
