@@ -1,9 +1,10 @@
-## 3.13.14
-## rpique [2014-03-13  8:07 ] I changed the resource requirments for sorting. 
-## Make .bams for system plate 4
-genomeindex=/wsu/home/groups/piquelab/data/RefGenome/hg19.fa.gz
+## 09.03.15
+## GMB Wayne State University
+## Makefile to align RNA-seq reads using STAR aligner
+genomeindex=/wsu/home/groups/piquelab/data/RefGenome/STAR/
 fastqs=../fastqs
-sortedBams=$(shell find ./ -name '*sorted.bam' | sed 's/_[SL].*\.bam//g' | sort | uniq)
+bamFolder=./
+
 Qsub.ppn=2
 Qsub.q=mmtxq
 Qsub.N=bams
@@ -20,16 +21,23 @@ all:
 
 all_bams: $(patsubst $(fastqs)/%_R1.fastq.gz,%.bam.Qsub,$(wildcard $(fastqs)/*_R1.fastq.gz))
 
-%.bam: $(fastqs)/%_R1.fastq.gz $(fastqs)/%_R2.fastq.gz
-	bwa mem -t $(Qsub.ppn) $(genomeindex) $^  | samtools view -Sb1 - > $@
-	samtools sort $@ $*_sorted
-#	samtools sort -@$(Qsub.ppn) -m 1000000000 $@ $*_sorted
-	samtools index $*_sorted.bam
+## Align the sequencing reads using the STAR aligner
+%.out: $(fastqs)/%_R1.fastq.gz $(fastqs)/%_R2.fastq.gz
+	mkdir -p $@
+	STAR \
+		--runThreadN $(Qsub.ppn) \
+		--genomeDir $(genomeindex) \
+		--readFilesIn $^ \
+		--readFilesCommand zcat \
+		--outFileNamePrefix $*.out/$*. \
+		--outSAMtype BAM Unsorted
+	samtools sort $*.out/$*.Aligned.out.bam $*.out/$*.Aligned.sort
+	samtools index $*.out/$*.Aligned.sort.bam
+	samtools idxstats $*.out/$*.Aligned.sort.bam > $*.out/$*.Aligned.sort.counts.txt
 
-all_clean: $(patsubst %, %_clean.bam.Qsub,$(sortedBams))
-
-%_merged.bam: %_[SL]*_sorted.bam 
-	samtools merge $@ $^
+## Process and quality filter the aligned reads
+%.merged.bam: 
+	samtools merge $@ $*_L*.out/$*_L*.Aligned.sort.bam
 	samtools index $@
 	samtools view -c $@ > $*_merged_count.txt
 
