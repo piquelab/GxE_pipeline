@@ -45,8 +45,8 @@ out_dat <- Reduce(rbind, ParallelLapply(ids, function(id){
   #id <- ids[1]
 
   ## d_dat: DGE data from DESeq2 at the level of transcripts and, same as q_dat, multiple gene_IDs
-  d_dat <- read.table('../../expression/DESeq2/out_data_', plate, '/stats/',
-                      plate, '_DEG_stats', '_', id, '.txt'), stringsAsFactors=FALSE, header=TRUE)
+  d_dat <- read.table(paste0('../../expression/DESeq2/out_data_', plate, '/stats/',
+                             plate, '_DEG_stats', '_', id, '.txt'), stringsAsFactors=FALSE, header=TRUE)
   rownames(d_dat) <- d_dat$t.id 
   #head(d_dat)
   

@@ -17,7 +17,8 @@ cp QuASAR_* ../../jointGenotyping/QuASAR_results_${plate}
 ## this is redundant. make it better by checking for util_QuASAR_runAll.sh before copying it.
 cp util_QuASAR_runAll.sh ../../jointGenotyping/
 
-## link to all files for analysis
-cd ../../jointGenotyping/QuASAR_results_${plate}/data
+## link to all files for analysis/
+cd ../../jointGenotyping/QuASAR_results_${plate}/data/
 ls ../../../derived_data/${plate}/pileups/*.pileup.clean.bed.gz | while read f; do ln -sv $f; done
+
 

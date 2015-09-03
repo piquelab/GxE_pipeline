@@ -226,7 +226,7 @@ res <- ParallelSapply(TreatmentOnlyLevels,function(t){
   res 
 }); names(res) <- TreatmentOnlyLevels
 
-save(res,ddsFull, file=paste(dataDir, '/DESeq2_', platePrefix, '.RData', sep=''))
+save(list=c("res", "ddsFull"), file=paste(dataDir, '/DESeq2_', platePrefix, '.RData', sep=''))
 
 ##############################
 ## Plots and summary tables ##
