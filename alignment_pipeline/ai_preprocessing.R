@@ -16,8 +16,6 @@ if(length(cargs) >= 1)
   pileupFile <- cargs[1];
 if(length(cargs) >= 2)
   oFile <- cargs[2];
-if(length(cargs) >= 3)
-  lFile <- cargs[3];
 
 # Get the input data
 command <- paste("less ", pileupFile,
@@ -79,6 +77,5 @@ pileup <- pileup[order(pileup$chr, pileup$pos), c("chr", "pos-1", "pos",
                                                   "ref", "alt", "rsID", "af", "ref.matches", "alt.matches", "errors")];
 
 ## Output the clean pileup file
-outFile <- gsub(".*/", "clean.bed.gz", gsub("bed.gz", "", pileupFile));
-write.table(pileup, gzfile(outFile), quote=F, col.names=F,
+write.table(pileup, gzfile(oFile), quote=F, col.names=F,
             row.names=F, sep="\t")
