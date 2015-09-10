@@ -1,0 +1,54 @@
+Treatment_Name	Short_Name	Category	Control.ID	DeepColor
+CO1	Media (Water)	H2O	Control	CO1	#222222FF
+CO2	Ethanol	EtOH	Control	CO2	#555555FF
+CO3	DMSO	DMSO	Control	CO3	#888888FF
+T1C1	Vitamin C	VitC	Dietary components	CO1	NA
+T2C1	Biotin	Biotin	Dietary components	CO1	#E695C5FF
+T3C1	Niacin (Nicotinic acid)	Niacin	Dietary components	CO1	#D595E6FF
+T4C1	Panthothenic acid	PanAc	Dietary components	CO1	#A595E6FF
+T5C1	Vitamin B6	VitB6	Dietary components	CO1	#95E6E6FF
+T6C1	Retinoic Acid	RetAc	Dietary components	CO2	#B37700FF
+T7C1	Vitamin E	VitE	Dietary components	CO2	NA
+T8C1	Vitamin K (Plumbagin)	VitK	Dietary components	CO2	NA
+T9C1	Aldosterone	Ald	Steroid Hormones	CO2	NA
+T10C1	Progesterone(10e-6)_DMSO	Prog_DMSO	Steroid Hormones	CO3	NA
+T10C2	Progesterone(10e-7)_EtOH	Prog_EtOH	Steroid Hormones	CO2	NA
+T11C1	Estrogen	Estrogen	Steroid Hormones	CO2	NA
+T12C1	Dexamethasone	Dex	Steroid Hormones	CO2	#FF00AAFF
+T13C1	Caffeine	Caff	Dietary components	CO1	#FF0000FF
+T14C1	Nicotine	Nicotine	Environmental contaminants and common chemicals	CO1	NA
+T15C1	Copper (Copper (II) Chloride)	CuCl	Metal Ions	CO1	#E69595FF
+T16C1	Iron (Iron (III) Chloride)(5mM)	FeCl_hi	Metal Ions	CO1	#FFAA00FF
+T16C2	Iron (Iron (III) Chloride)(10uM)	FeCl_lo	Metal Ions	CO1	NA
+T17C1	Manganese (Manganese (II) Chloride)(3mM)	MnCl_hi	Metal Ions	CO1	NA
+T17C2	Manganese (Manganese (II) Chloride)(15nM)	MnCl_lo	Metal Ions	CO1	NA
+T18C1	Molybdenum (Molybdenum (V) Chloride)	MoCl	Metal Ions	CO1	NA
+T19C1	Selenium (Sodium Selenite)	NaSe	Metal Ions	CO1	#00FFAAFF
+T20C1	Zinc (Zinc Chloride)	ZnCl	Metal Ions	CO1	#B30077FF
+T21C1	Tunicamycin	Tunicamycin	Common drugs	CO3	#AAFF00FF
+T22C1	PM 2.5	PM2.5	Environmental contaminants and common chemicals	CO1	NA
+T23C1	Vitamin D	VitD	Dietary components	CO2	#00B377FF
+T24C1	Acrylamide	Acryl	Environmental contaminants and common chemicals	CO1	#E6C595FF
+T25C1	Benzophenone-3 (BP-3)	BP3	Environmental contaminants and common chemicals	CO2	#7700B3FF
+T26C1	Bisphenol A (BPA)	BPA	Environmental contaminants and common chemicals	CO1	NA
+T27C1	Cadmium	Cadm	Metal Ions	CO1	#0000FFFF
+T28C1	Trihalomethanes (Byproduct of Chlorinated & Brominated H2O)	CCl3	Environmental contaminants and common chemicals	CO1	NA
+T29C1	Perfluorooctanoic Acid (Nonstick Cookware)	Perfluoro	Environmental contaminants and common chemicals	CO1	#AA00FFFF
+T30C1	Triclosan (Disinfectant)	Triclos	Environmental contaminants and common chemicals	CO2	#0000B3FF
+T32C1	Folic Acid (Vitamin B9)	VitB9	Dietary components	CO1	NA
+T33C1	Insulin	Insulin	Peptide Hormones and neurotransmitters	CO1	#0077B3FF
+T34C1	Glucagon	Gluca	Peptide Hormones and neurotransmitters	CO1	NA
+T35C1	Oxytocin	Oxyto	Peptide Hormones and neurotransmitters	CO1	NA
+T36C1	Vasopressin	Vaso	Peptide Hormones and neurotransmitters	CO1	NA
+T37C1	Acetyl Choline	ActChl	Peptide Hormones and neurotransmitters	CO1	NA
+T38C1	Glucose	Gluc	Dietary components	CO1	NA
+T39C1	Monosodium Glutamate	Msg	Dietary components	CO1	NA
+T40C1	Butylated HydroxyAnisole	BHA	Environmental contaminants and common chemicals	CO2	#D5E695FF
+T41C1	Ibuprofen (NSAID)	Ibup	Common drugs	CO2	#95B5E6FF
+T42C1	Acetaminophen (NSAID)	Acetam	Common drugs	CO1	NA
+T43C1	Aspirin (NSAID)	Aspirin	Common drugs	CO2	#95E6B5FF
+T44C1	Loratadine (Allergy)	Loratad	Common drugs	CO2	#00AAFFFF
+T45C1	Cetirizine (Allergy)	Cetiriz	Common drugs	CO1	#B30000FF
+T46C1	Dextromethorphan (Decongestant)	Dextro	Common drugs	CO1	NA
+T47C1	Mono-n-butyl Phthalate	MnbP	Environmental contaminants and common chemicals	CO2	#77B300FF
+T48C1	Total Cholesterol	Cholest	Dietary components	CO2	NA
