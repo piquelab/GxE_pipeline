@@ -1,8 +1,14 @@
 
 Expression pipeline
 ===================
-
 This directory contains scripts related to the expression analysis of the GxE pipeline.
+
+## Setup
+Initialize the expression analysis directory using the utility script:
+```
+ $ sh util_expression_setup.sh 
+```
+
 
 ## Prerequisites
 * The [alignment pipeline](../alignment_pipeline/) must be run first
@@ -10,16 +16,16 @@ This directory contains scripts related to the expression analysis of the GxE pi
 * A [gene annotation](../misc/) file with transcript information
 
 ## Outline
-1) Asses differential gene expression with DESeq2
-2) Calculate transcript FPKMs
-3) Select transcripts representative of a gene, for gene-based analyses
-4) Combine expression and differential expression into a master table
-5) Combine expression data with the QuASAR output
+1. Asses differential gene expression with DESeq2
+2. Calculate transcript FPKMs
+3. Select transcripts representative of a gene, for gene-based analyses
+4. Combine expression and differential expression into a master table
+5. Combine expression data with the QuASAR output
 
 ## Notes
 Each step is run on one plate at a time.
 
-### Definitions
+#### Definitions
 The following terms are used, often as input to scripts or parts of file names.
 <dl>
 	<dt>Plate</td>
@@ -27,7 +33,7 @@ The following terms are used, often as input to scripts or parts of file names.
 	<dt>Aligner / 'bams'</dt>
 	<dd>A short, file-name friendly string refering to the aligner used, e.g., 'bwa', 'tophat', or 'star'</dd>
 	<dt>Word</dt>
-	<dd>A string indicating processing steps, used to distinguish output from [expr_countsToFpkms.R](./expr_countsToFpkms.R)</dd>
+	<dd>A string indicating processing steps, used to distinguish output from <a href=expr_countsToFpkms.R>expr_countsToFpkms.R</a></dd>
 	<dt>Type</dt>
 	<dd>Adjustment type for transcripts with NA logFC values, either remove ("NaRm") or 0'd out ("Na0s")</dd>
 </dl>
