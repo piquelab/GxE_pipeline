@@ -6,11 +6,6 @@
 ## Return Values: Genotypes, model.convergence, inference, metaData
 ##################################################################
 
-## 
-LPG <- '/wsu/home/groups/piquelab'
-
-##################################################################
-#library('ggplot2', lib.loc=myRlib)
 library('QuASAR')
 library('ggplot2')
 library(qqman)
@@ -20,9 +15,6 @@ require(qvalue)
 ##################################################################
 ## use the covariate table and use the barcodes to select samples
 ##################################################################    
-#plate <- "DP1" 
-## Plate DP1 cell lines 18507 18508 19239
-#cell.line <- "18507"
 cargs <- commandArgs(trail=TRUE);
 if(length(cargs)>=1)
   plate <- cargs[1]
@@ -43,9 +35,7 @@ cov.file <- paste('../../derived_data/covariates/GxE_', plate, '_covariates.txt'
 cv <- read.table(file=cov.file, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 cv$Treatment <- gsub(' ',  '_', cv$Treatment)
 cov.file <- cv[cv$Plate.ID==plate & cv$CellLine==cell.line, ]
-##
-#if(cell.line=="18507"){cov.file <- cov.file[-3, ]} ## remove questionable EtOH sample
-##
+
 barcodes <- cov.file$Barcode.ID
 treatments <- cov.file$Treatment
 n.treatments <- length(treatments)
@@ -440,7 +430,7 @@ emp_rho <- '*'(all_ref, all_coverage^(-1))
 rho_title <- paste0(plate, '-', cell.line, ' : Rho_hat across all treatements', '\n mean.Rho=', mean_rho_hat, ' | median.Rho=', median_rho_hat)
 pdf.file <- paste('./plots/QC/', plate, '_', cell.line, '_averageRho', '.pdf', sep='')
 pdf(file=pdf.file)
-hist(all_rho_hat[all_coverage>100], breaks=80, main=rho_title, axes=FALSE)
+hist(all_rho_hat[all_coverage>100], breaks=80, main=rho_title, xlim=c(0,1), breaks=seq(0,1,0.01), color='darkgrey', axes=FALSE)
 abline(v=mean_rho_hat, lty=2, col='red')
 axis(1, at=seq(0, 1, .1)); axis(2)
 dev.off()
