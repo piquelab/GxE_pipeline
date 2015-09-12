@@ -30,15 +30,13 @@ anno <- anno[,-c(9:12)]
 colnames(anno) <-  c("chr","start","stop","t.id","score","strand","c.start","c.stop","ensg","g.id")
 
 ## get the barcodes
-barcodes <- as.integer(scan(pipe(paste('ls ../../fastqs/', platePrefix, '-HT* | sed s/_L.*//g | sed s/.*', platePrefix, '-HT//g | sort | uniq', sep='')), character(0)))
-
+barcodes <- as.integer(scan(pipe(paste('ls ../../bams/', platePrefix, '-HT*_clean.bam | sed s/_.*//g | sed s/.*', platePrefix, '-HT//g | sort | uniq', sep='')), character(0)))
 barcodes <- sort(barcodes)
 
-data <- ParallelSapply(barcodes, function(ii){
-	command <- paste("samtools bedcov ", bedtranscript, " ", dataFolder, "/", platePrefix, "-HT", ii, "_clean.bam | cut -f15",sep="") 
-	cat("#",command,"\n");
-	aux <- scan(pipe(command))
-	aux / 100
+## Note: This only works UNTIL bedtools 2.24.0, which is when they switched input order
+data <- ParallelSapply(barcodes, function(ii) {
+  command <- paste0("bedtools coverage -abam ", dataFolder, "/", platePrefix, "-HT", ii, "_clean.bam -b ", bedtranscript, " | cut -f15")
+  scan(pipe(command))
 })
 
 rownames(data) <- anno$t.id;
