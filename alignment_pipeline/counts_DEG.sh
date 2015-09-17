@@ -2,7 +2,7 @@
 plate=$1
 ncpus=8
 queue=mmtxq
-jobName=DEG_counts_${plate}
+jobName=GC_${plate}
 
 # sh counts_QC.sh P4 /wsu/home/fl/fl97/fl9788/piquelab/charvey/system/derived_data/P4/bams
 
