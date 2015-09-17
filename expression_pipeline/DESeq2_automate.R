@@ -250,8 +250,7 @@ degs <- t(ParallelSapply(1:n.treats, FUN=function(this){
 }))
 
 Treatment <- sapply(1:n.treats, function(ii){
-      index <- which(treatmentKey$Treatment_ID==TreatmentOnlyLevels[ii])
-      treatmentKey[index, "Short_Name"]
+      treatmentKey[TreatmentOnlyLevels[ii], "Short_Name"]
   })
 
 degs <- data.frame(Treatment.ID=TreatmentOnlyLevels, Treatment, degs)
