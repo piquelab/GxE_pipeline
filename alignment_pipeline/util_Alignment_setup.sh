@@ -3,15 +3,7 @@ set -v
 set -e
 
 platenum=$1
-
-if [ "$2" = "-w" ]
-then
-  plate=$platenum-WASP;
-  root=../../derived_data_WASP/$plate;
-else
-  plate=$platenum;
-  root=../../derived_data/$plate;
-fi
+root=../../derived_data/$platenum;
 
 mydirs=(fastqs bams counts counts/GC counts/QC pileups)
 
@@ -19,13 +11,7 @@ for ii in ${mydirs[@]}; do
   mkdir -p $root/${ii}
 done
 
-if [ "$2" = "-w" ] 
-then
-  cp ./WASP/Makefile $root/bams;
-else
-  cp Makefile $root/bams;
-fi
-
+cp Makefile $root/bams
 cp counts_DEG.* $root/counts/GC
 cp counts_QC_logs.* $root/counts/QC
 cp Makefile.pileup $root/pileups/Makefile
