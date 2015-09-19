@@ -75,11 +75,30 @@ covariates <- read.table(cov.file, header=TRUE, sep='\t')
 cov_short <- covariates[, c('Plate.ID', 'Barcode.ID', 'CellLine', 'Treatment.ID')]
 names(counts_merged) <- c('Barcode.ID', filters[c(3, 2, 1)])
 out_data <- merge(cov_short, counts_merged, by='Barcode.ID')
+
+## For deep plates, update the Plate.ID. Additionally, write out an abbreviate
+## covariate table, using the barcodes read in from the bam files. This is particularily
+## useful for updating the covariate file when new treatments are added.
 if ( strtrim(platePrefix, 2) == "DP" ) {
   out_data$Plate.ID <- platePrefix
+  deepCovariates <- covariates[ covariates$Barcode.ID %in% out_data$Barcode.ID,
+                                c("Plate.ID", "Barcode.ID", "RawReads", "QualityReads",
+                                  "CleanReads", "Treatment.ID", "Treatment", "BarcodeSequence",
+                                  "CellType", "CellLine", "Control.ID", "ControlCategory") ]
+  deepCovariates$Plate.ID <- platePrefix
+  deepCovariates$RawReads     <- out_data$merged
+  deepCovariates$QualityReads <- out_data$quality
+  deepCovariates$CleanReads   <- out_data$clean
+  write.table(deepCovariates, file=paste0('../../../covariates/GxE_', platePrefix, '_covariates.txt'),
+              quote=FALSE, row.names=FALSE, sep='\t')
 }
-
 write.table(out_data, file=paste(platePrefix, '_QC_counts.txt', sep=''), quote=FALSE, row.names=FALSE, sep='\t')
+
+## Finally, output the aggregate sums of raw reads for each barcode/individual
+## combination to check if we've hit the desired depth
+tb <- aggregate(out_data$merged, by=list(out_data$CellLine, out_data$Treatment.ID), sum)
+colnames(tb) <- c("Cell.Line", "Treatment.ID", "Raw.Counts")
+write.table(tb, file=paste0(platePrefix, '_coverage.txt'), quote=FALSE, row.names=FALSE, sep='\t')
 
 ##
 # THE END
