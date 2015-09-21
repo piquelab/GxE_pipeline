@@ -5,4 +5,4 @@ ncpus=2
 queue=mmtxq
 jobName=${plate}-${cellLine}
 
-echo "cd ${PWD}; Rscript QuASAR_pipeline.R ${plate} ${cellLine}; Rscript QuASAR_pipeline_masterTable.R ${plate} ${cellLine}" | qsub -q ${queue} -l nodes=1:ppn=${ncpus} -N ${jobName} -o ${jobName}.Qsub -e ${jobName}.Qsub.e 
+echo "cd ${PWD}; Rscript QuASAR_pipeline.R ${plate} ${cellLine}" | qsub -q ${queue} -l nodes=1:ppn=${ncpus} -N ${jobName} -o ${jobName}.Qsub -e ${jobName}.Qsub.e 
