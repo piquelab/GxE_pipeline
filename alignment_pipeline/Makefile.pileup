@@ -1,7 +1,7 @@
 # Makefile to create pileups for downstream AI analysis
 bamFolder=../bams
 aiScript=ai_preprocessing.R
-1KGSnps=/wsu/home/groups/piquelab/data/SNPs/1KG_SNPs_filt.011614.bed.gz
+1KGSnps=/wsu/home/groups/piquelab/gmb/SNPs/1KG/20130502/1KG_SNPs_filt.20130502v5b.bed.gz
 genome=/wsu/home/groups/piquelab/data/RefGenome/hg19.fa
 
 filtStr='$$4>0 && $$5 !~ /[^\^][<>]/ && $$5 !~ /\+[0-9]+[ACGTNacgtn]+/ && $$5 !~ /-[0-9]+[ACGTNacgtn]+/ && $$5 !~ /[^\^]\*/'
