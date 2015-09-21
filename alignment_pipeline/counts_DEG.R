@@ -24,7 +24,7 @@ ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
 }
 
-bedtranscript <- "/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.v2.bed.gz";
+bedtranscript <- "/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.bed.gz";
 anno <- read.table(bedtranscript,as.is=T,sep="\t")
 anno <- anno[,-c(9:12)]
 colnames(anno) <-  c("chr","start","stop","t.id","score","strand","c.start","c.stop","ensg","g.id")
