@@ -17,7 +17,7 @@ require(qvalue)
 ##################################################################    
 cargs <- commandArgs(trail=TRUE);
 if(length(cargs)>=1)
-  plate <- cargs[1]
+  platePrefix <- cargs[1]
 if(length(cargs)>=2)
   cell.line <- cargs[2]
 
@@ -31,10 +31,10 @@ system('mkdir -p plots/QC/manhattan')
 ##################################################################    
 output.folder <- paste('./output',sep='')
 ## extract covariates table
-cov.file <- paste('../../derived_data/covariates/GxE_', plate, '_covariates.txt', sep='')
+cov.file <- paste('../../derived_data/covariates/GxE_', platePrefix, '_covariates.txt', sep='')
 cv <- read.table(file=cov.file, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 cv$Treatment <- gsub(' ',  '_', cv$Treatment)
-cov.file <- cv[cv$Plate.ID==plate & cv$CellLine==cell.line, ]
+cov.file <- cv[cv$Plate.ID==platePrefix & cv$CellLine==cell.line, ]
 
 barcodes <- cov.file$Barcode.ID
 treatments <- cov.file$Treatment
@@ -80,7 +80,9 @@ UnionExtractFields <- function (fileList, combine = FALSE)
 ##################################################################    
 ## prepare the relevant samples
 ##################################################################    
-ase.dat <- UnionExtractFields(cov.file$Filename, combine=TRUE)
+files <- paste0('../../derived_data/', platePrefix, '/pileups/', platePrefix,
+                "-HT", barcodes, ".pileup.clean.bed.gz")
+ase.dat <- UnionExtractFields(files, combine=TRUE)
 for(ii in seq_along(1:3)){colnames(ase.dat[[ii]])<-paste("HT", barcodes,sep='')}
 min.cov <- 15
 ase.dat.gt <- PrepForGenotyping(ase.dat, min.coverage=min.cov)
@@ -104,13 +106,13 @@ if(TRUE){
 		oraf <- oraf[ind]
 		aux <- data.frame(oraf=oraf)
 
-		pdf.file <- paste('./plots/QC/oraf/', plate, '_', cell.line, '_', treatment.IDs[ii], '_',  ii, '_QC_oraf.pdf', sep='')	
+		pdf.file <- paste('./plots/QC/oraf/', platePrefix, '_', cell.line, '_', treatment.IDs[ii], '_',  ii, '_QC_oraf.pdf', sep='')	
 		pdf(file=pdf.file)
 		#hist(oraf, breaks=100)
 		  qc_plot <- ggplot(aux, aes(x=oraf))
 		  print(qc_plot +
                         geom_histogram(binwidth=0.01) +
-                        ggtitle(paste(plate, '_', cell.line, '_', treatments[ii], sep=''))) +
+                        ggtitle(paste(platePrefix, '_', cell.line, '_', treatments[ii], sep=''))) +
                         theme_bw()
 		dev.off()
 	}}
@@ -129,7 +131,7 @@ for(ii in (1:n.treatments)){
 	sName <- treatment.IDs[ii]
 	chrCol <- rep(c("orange","darkblue"),length(chrList))[1:length(chrList)]
 	names(chrCol) <- chrList
-	pdf.file <- paste('./plots/QC/manhattan/', plate, '_', cell.line, '_', sName, '_',  ii, '_QC_manhattan.pdf', sep='')	
+	pdf.file <- paste('./plots/QC/manhattan/', platePrefix, '_', cell.line, '_', sName, '_',  ii, '_QC_manhattan.pdf', sep='')	
 	pdf(file=pdf.file,width=16,height=8)
 	layout(t(c(1,1,1,2)))
 	par(cex=1.0)
@@ -190,13 +192,13 @@ ase.dat.final <- list(ref=finalref, alt=finalalt, gmat=ase.dat.gt$gmat, annotati
 ## ase.joint ~ object for joint genotyoping across all samples
 ##################################################################
 out.gts <- data.frame(rsID=ase.dat.final$annotations$rsID, g0=ase.joint$gt[, 'g0'], g1=ase.joint$gt[, 'g1'], g2=ase.joint$gt[, 'g2'])
-dat.name <- paste(output.folder, "/",plate, "_",cell.line,'_genotypes.txt', sep='')
+dat.name <- paste(output.folder, "/",platePrefix, "_",cell.line,'_genotypes.txt', sep='')
 write.table(out.gts, file=dat.name, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 
 for(ii in 1:length(treatments)){
 	this.treat <- treatment.IDs[ii]	
 	out.counts <- data.frame(rsID=ase.dat.gt$annotations$rsID, ref=ase.dat.gt$ref[, ii], alt=ase.dat.gt$alt[, ii])
-	dat.name <- paste(output.folder, "/",plate, "_",cell.line, '_', this.treat, '_readCounts.txt', sep='')
+	dat.name <- paste(output.folder, "/",platePrefix, "_",cell.line, '_', this.treat, '_readCounts.txt', sep='')
 	write.table(out.counts, file=dat.name, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
 }
 
@@ -333,9 +335,9 @@ inference.data <- lapply(seq_along(1:n.eps), function(ii){
 				geneAnnoFile <- "/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.v2.bed.gz"
 				command <- paste("intersectBed -a ",tmpFile," -b ",geneAnnoFile," -split -wao",sep="")
 				aa <- read.table(pipe(command),sep="\t",as.is=T,na.strings=".")
-				filename <- paste('./output/', plate, '_', cell.line, '_', this.treatment, '_ensg.txt', sep='')
+				filename <- paste('./output/', platePrefix, '_', cell.line, '_', this.treatment, '_ensg.txt', sep='')
 				write.table(data.frame(unique(aa$V19)), file=filename, row.names=FALSE, col.names=FALSE, quote=FALSE)
-				filename <- paste('./output/', plate, '_', cell.line, '_', this.treatment, '_gene.txt', sep='')
+				filename <- paste('./output/', platePrefix, '_', cell.line, '_', this.treatment, '_gene.txt', sep='')
 				write.table(data.frame(unique(aa$V20)), file=filename, row.names=FALSE, col.names=FALSE, quote=FALSE)
 			}
                         
@@ -359,7 +361,7 @@ inference.data <- lapply(seq_along(1:n.eps), function(ii){
                         complete.dat$beta.se <- betas.se 
                         complete.dat$pval <- pval3
                         complete.dat$qval <- qvals.qv3 
-                        filename.all <- paste('./output/', plate, '_', cell.line, '_', this.treatment, '_allOutput.txt', sep='')
+                        filename.all <- paste('./output/', platePrefix, '_', cell.line, '_', this.treatment, '_allOutput.txt', sep='')
                         write.table(complete.dat, file=filename.all, row.names=FALSE, col.name=TRUE, quote=FALSE)
                         system(
                           paste0("less ",
@@ -409,7 +411,7 @@ inference.data <- lapply(seq_along(1:n.eps), function(ii){
 }) ## Returns a list of data & metaData
 
 names(inference.data) <- treatmentIDs_final
-dat.name <- paste(output.folder, "/",plate, "_",cell.line, "_cov", min.cov, '_inference.RData', sep='')
+dat.name <- paste(output.folder, "/",platePrefix, "_",cell.line, "_cov", min.cov, '_inference.RData', sep='')
 save(inference.data, file=dat.name)
 str(inference.data)
 #load(dat.name)
@@ -427,8 +429,8 @@ all_alt <- Reduce(c, sapply(seq_along(1:length(inference.data)), FUN=function(ii
 all_coverage <- '+'(all_ref, all_alt)
 emp_rho <- '*'(all_ref, all_coverage^(-1))
 
-rho_title <- paste0(plate, '-', cell.line, ' : Rho_hat across all treatements', '\n mean.Rho=', mean_rho_hat, ' | median.Rho=', median_rho_hat)
-pdf.file <- paste('./plots/QC/', plate, '_', cell.line, '_averageRho', '.pdf', sep='')
+rho_title <- paste0(platePrefix, '-', cell.line, ' : Rho_hat across all treatements', '\n mean.Rho=', mean_rho_hat, ' | median.Rho=', median_rho_hat)
+pdf.file <- paste('./plots/QC/', platePrefix, '_', cell.line, '_averageRho', '.pdf', sep='')
 pdf(file=pdf.file)
 hist(all_rho_hat[all_coverage>100], breaks=80, main=rho_title, xlim=c(0,1), breaks=seq(0,1,0.01), color='darkgrey', axes=FALSE)
 abline(v=mean_rho_hat, lty=2, col='red')
@@ -453,7 +455,7 @@ for(ii in seq_along(1:length(inference.data))){
         pval_high <- inference.data[[1]]$dat$pval[which(coverage>100)]
         qqp <- qqplot(-log10(ppoints(length(pval_high))),-log10(pval_high), plot.it=F)
          
-        pdf.file <- paste('./plots/QQ/', plate, '_', cell.line, '_', treatment, "_cov", min.cov, '_', ii, '_QQ', '.pdf', sep='')
+        pdf.file <- paste('./plots/QQ/', platePrefix, '_', cell.line, '_', treatment, "_cov", min.cov, '_', ii, '_QQ', '.pdf', sep='')
         title <- paste(cell.line, " | ", treatments_collapsed[ii], ' | Pi0=', pi0, ' | #hets=', hets, '\n #qv.2=', qv.2, ' | avg.depth=', avg.depth, ' | disp=', disp, sep='')
        
         pdf(file=pdf.file)
@@ -476,7 +478,7 @@ asetable <- t(sapply(seq_along(1:length(inference.data)), FUN=function(ii){
 rownames(asetable) <- names(inference.data)
 colnames(asetable) <- c('Q<.01', 'Q<.05', 'Q<.1', 'Q<.2')
 
-outfile <- paste('./output/', plate, "_",cell.line, '_Qhits.txt', sep='')
+outfile <- paste('./output/', platePrefix, "_",cell.line, '_Qhits.txt', sep='')
 write.table(asetable, file=outfile, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t") 
 
 ##                          ##
