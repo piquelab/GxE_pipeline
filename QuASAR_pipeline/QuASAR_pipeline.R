@@ -16,7 +16,7 @@ if(length(cargs)>=1)
   cell.type <- cargs[1]
 
 output.folder <- paste0(cell.type, '/')
-system(paste0('mkdir -p ', output.folder))
+#system(paste0('mkdir -p ', output.folder)) # already made with prep script
 system(paste0('mkdir -p ', output.folder, '/plots/QQ'))
 system(paste0('mkdir -p ', output.folder, '/plots/QC/oraf'))
 system(paste0('mkdir -p ', output.folder, '/plots/QC/coverage'))
@@ -36,7 +36,7 @@ sapply(unique(cv$CellLine), function(cell.line) {
 
   ## Load in the input data
   ## Loads 'ase.dat' and 'cov.file'
-  load(paste0(cell.type, '/', cell.type, '_', cell.line, '_quasarIn.Rd'))
+  load(paste0(cell.type, '/data/', cell.type, '_', cell.line, '_quasarIn.Rd'))
 
   barcodes <- paste0(cov.file$Plate.ID, "-HT", cov.file$Barcode.ID) #cov.file$Barcode.ID
   treatments <- cov.file$Treatment
@@ -122,13 +122,32 @@ sapply(unique(cv$CellLine), function(cell.line) {
   ##################################################################
   ## Collapse the controls
   ##################################################################
-  controlref <- sapply(controls, function(this){rowSums(ase.dat.gt$ref[, barcodes[ grep(this, treatment.IDs) ] ])})
-  controlalt <- sapply(controls, function(this){rowSums(ase.dat.gt$alt[, barcodes[ grep(this, treatment.IDs) ]  ])}) 
+  plates <- unique(gsub('-HT.*', '', barcodes))
+
+  controlref <- do.call('cbind', lapply(plates, function(p) {
+    do.call('cbind', lapply(controls, function(this){rowSums(ase.dat.gt$ref[, barcodes[ intersect(grep(this, treatment.IDs), grep(p, barcodes))  ] ])}))
+  }))
+  colnames(controlref) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
+
+  controlalt <- do.call('cbind', lapply(plates, function(p) {
+    do.call('cbind', lapply(controls, function(this){rowSums(ase.dat.gt$alt[, barcodes[ intersect(grep(this, treatment.IDs), grep(p, barcodes))  ]  ])}))
+  }))
+  colnames(controlalt) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
 
   finalref <- cbind(controlref, ase.dat.gt$ref[, barcodes[ -grep("CO", treatment.IDs) ]])
   finalalt <- cbind(controlalt, ase.dat.gt$alt[, barcodes[ -grep("CO", treatment.IDs) ]])
-  treatments_collapsed <- c(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), treatments[ -grep("CO", treatment.IDs) ])
-  treatmentIDs_final <- c(controls, treatment.IDs[ -grep("CO", treatment.IDs) ])
+
+  x <- strsplit(colnames(finalref), '-')
+  plt <- sapply(x, function(y) { y[1] })
+  tx  <- sapply(x, function(y) { y[2] })
+  treatments_collapsed <- paste(plt, c(
+    rep(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), length(unique(plates))),
+    treatments[ -grep("CO", treatment.IDs) ]), sep='_')
+  treatmentIDs_final <- paste(plt,
+    c(rep(controls, length(plates)),
+    treatment.IDs[ -grep("CO", treatment.IDs) ]), sep='.')
+  #treatments_collapsed <- c(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), treatments[ -grep("CO", treatment.IDs) ])
+  #treatmentIDs_final <- c(controls, treatment.IDs[ -grep("CO", treatment.IDs) ])
 
   colnames(finalref) <- treatments_collapsed
   colnames(finalalt) <- treatments_collapsed

@@ -13,7 +13,7 @@ if(length(cargs)>=1)
   cell.type <- cargs[1] 
 
 system(paste0('mkdir -p ', cell.type))
-system(paste0('mkdir -p ', cell.type, '/output'))
+system(paste0('mkdir -p ', cell.type, '/data'))
 
 ##################################################################
 ## specify covariate file and pileup directories
@@ -79,7 +79,7 @@ sapply(unique(cv$CellLine), function(cell.line) {
     colnames(ase.dat[[ii]]) <- gsub('.*pileups/', '', gsub('\\.pileup.*', '', files))
   }
   save(list=c('ase.dat', 'cov.file'),
-       file=paste0(cell.type, '/output/', cell.type, '_', cell.line, '_quasarIn.Rd'))
+       file=paste0(cell.type, '/data/', cell.type, '_', cell.line, '_quasarIn.Rd'))
 })  
 
 ## the end ##
