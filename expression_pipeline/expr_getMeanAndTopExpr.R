@@ -4,30 +4,41 @@
 ## Takes a matrix of FPKM data and a gene annotation file,
 ## and returns a matrix condensed to one transcript per gene
 ##
-## INPUT/ARGS
-##   platePrefix - experiment to run, e.g., DP1
+## Required Arguments
+##   platePrefix - character; experiment to run, e.g., DP1
+##   word - character; file infix denoting processing steps, etc
+##
+## Optional Arguments
 ##   cores - number of cores for parallel sapplys
+##   bedTranscriptome - character; transcriptome bed file
 ##
 ##################################################################
 
+## Libraries ##
 library(parallel)
 library(reshape)
-LPG <- Sys.getenv("LPG")
+source('../../GxE_pipeline/misc/getArgs.R')
 
-cargs<-commandArgs(trail=TRUE);
-if (length(cargs)>=1) { platePrefix <- cargs[1] }
-if (length(cargs)>=2) { word        <- cargs[2] }
-if (length(cargs)>=3) { cores       <- cargs[3] }
+## Get command-line arguments
+defaultList = list(
+  cores=1,
+  bedTranscriptome="/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.bed.gz"
+  )
+args <- getArgs(defaults=defaultList)
+platePrefix      <- args$platePrefix # change to cell.type
+word             <- args$word
+cores            <- as.numeric(args$cores)
+bedTranscriptome <- args$bedTranscriptome
 
-if (cores < 1){cores <- 1}
+print(args)
+
 ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
 }
 
 ## Load the gene annontation file
-bedtranscript <- paste0("less ", LPG,
-  "/data/RefTranscriptome/ensGene.hg19.v2.bed.gz", " | cut -f 1-4,7,8,13,14")
-anno <- read.table(file=pipe(bedtranscript),as.is=T,sep="\t")
+anno <- read.table(as.is=T, sep="\t",
+                   file=pipe(paste0("less ", bedTranscriptome, " | cut -f 1-4,7,8,13,14")))
 colnames(anno) <-  c("chr", "start", "stop", "t.id", "c.start", "c.stop",
                      "ensg", "g.id")
 rownames(anno) <- anno$t.id
