@@ -25,12 +25,18 @@ Qsub.t=100 # throttle
 	sleep 1;	
 
 ## Workflow: align, quality filt, remove mapping bias, remove duplicates
+all_raw: $(patsubst $(fastqs)/%_L1_R1.fastq.gz, %_raw_count.txt, $(wildcard $(fastqs)/*_L1_R1.fastq.gz))
 all_bams: $(patsubst $(fastqs)/%_R1.fastq.gz, %.out.Qsub, $(wildcard $(fastqs)/*_R1.fastq.gz))
 all_bams_byBc: $(patsubst $(fastqs)/%_L1_R1.fastq.gz, %_all.out.Qsub, $(wildcard $(fastqs)/*_R1.fastq.gz))
 all_quality: $(patsubst %_L1.out, %_quality.bam.Qsub, $(wildcard *_L1.out))
 all_fq: $(patsubst %_quality.bam, %_quality.remap.fq1.gz.Qsub, $(wildcard *_quality.bam))
 all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_quality.remap.fq1.gz))
 
+
+## Obtain the raw read counts from the fastq files
+%_raw_count.txt:
+	find ../fastqs/ -name $*_L*_R1.fastq.gz | while read f; do \
+		zcat $$f | wc -l; done | awk '{ s+=$$1 } END {print (s/4)*2}' > $@
 
 ## Align the sequencing reads using the STAR aligner
 %.out: $(fastqs)/%_R1.fastq.gz $(fastqs)/%_R2.fastq.gz
