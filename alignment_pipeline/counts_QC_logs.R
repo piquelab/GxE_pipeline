@@ -38,22 +38,22 @@ if(length(cargs)>=2)
 #platePrefix <- "D1P6"
 #bamDir <- "../../bams"
 
-filters <- c('merged', 'quality', 'clean')
+filters <- c('raw', 'merged', 'quality', 'clean')
 
 ## collect all of the read counts from log files
 all_counts <- lapply(filters, function(this_filter){
   #this_filter <- filters[1]
   tmpFile <- scan(pipe("mktemp -t"),character(0))
-  system(paste('ls ../../bams/*', this_filter, '_count.txt | while read f; do cat $f | xargs echo $f; done > ', tmpFile, sep=''))
+  system(paste('ls ', bamDir, '/*', this_filter, '_count.txt | while read f; do cat $f | xargs echo $f; done > ', tmpFile, sep=''))
   counts <- read.table(tmpFile, sep=" ", as.is=T, header=FALSE)
   colnames(counts) <- c('sample', 'count')
-  counts$sample <- as.integer(gsub(paste('_', this_filter, '_count.txt', sep=''), '', gsub(paste('../../bams/', platePrefix, '-HT', sep=''), '', counts$sample)))
+  counts$sample <- as.integer(gsub(paste('_', this_filter, '_count.txt', sep=''), '', gsub(paste(bamDir, '/', platePrefix, '-HT', sep=''), '', counts$sample)))
   counts[order(counts$sample), ]
 })
 names(all_counts) <- filters
 
 counts_merged <- MergeList(2, all_counts, mergeCol = 'sample')
-names(counts_merged) <- c('sample', filters[c(3, 2, 1)])
+names(counts_merged) <- c('sample', rev(filters))
 n.barcodes <- dim(counts_merged)[1]
 
 plot_sample <- rep(counts_merged$sample, 3)
@@ -96,7 +96,7 @@ write.table(out_data, file=paste(platePrefix, '_QC_counts.txt', sep=''), quote=F
 
 ## Finally, output the aggregate sums of raw reads for each barcode/individual
 ## combination to check if we've hit the desired depth
-tb <- aggregate(out_data$merged, by=list(out_data$CellLine, out_data$Treatment.ID), sum)
+tb <- aggregate(out_data$raw, by=list(out_data$CellLine, out_data$Treatment.ID), sum)
 colnames(tb) <- c("Cell.Line", "Treatment.ID", "Raw.Counts")
 write.table(tb, file=paste0(platePrefix, '_coverage.txt'), quote=FALSE, row.names=FALSE, sep='\t')
 
