@@ -6,28 +6,30 @@
 ## Wayne State University, 2015
 ##################################################################
 
+require(ggplot2) ## Other packages need to overwrite certain 1.0.1.993 functions
 library(DESeq2)
 library(qvalue)
-require(ggplot2)
 require(plyr)
 library(reshape)
 require(parallel)
 require(BiocParallel)
+source('../../GxE_pipeline/misc/getArgs.R')
 
-## Required argument: plate prefix 
-cargs <- commandArgs(trail=TRUE);
-stopifnot(length(cargs)>=1)
-platePrefix <- cargs[1]
+## Get command-line arguments.
+defaultList = list(
+  cores=1,
+  bedTranscriptome="/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.bed.gz",
+  gcContentFile="/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.faCount.gz"
+  )
+args <- getArgs(defaults=defaultList)
+platePrefix      <- args$platePrefix
+cores            <- as.numeric(args$cores)
+bedTranscriptome <- args$bedTranscriptome
 
-## Optional argument: number of cores
-cores <- as.integer(Sys.getenv("NCPUS"))
-if(length(cargs)>=2)
-  cores <- as.numeric(cargs[2])
+print(args)
 
 timestamp()
-cat(platePrefix,cores,"\n")
 
-if(cores<1){cores <- 1}
 ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
 }
@@ -35,8 +37,6 @@ ParallelSapply <- function(...,mc.cores=cores){
 ## To run DESeq2 in parallel, using the
 ## BiocParallel library
 register(MulticoreParam(cores))
-
-LPG <- Sys.getenv("LPG")
 
 ## Gene counts: this is our data for anlaysis
 readCounts <- paste('../../derived_data/', platePrefix, '/counts/GC/',
@@ -68,9 +68,6 @@ system(paste("mkdir -p", degDir))
 ##
 qcDir <- paste(outDir, '/QC', sep='')
 system(paste("mkdir -p", qcDir))
-
-## reference transcriptome
-bedtranscript <- "/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.v2.bed.gz" 
 
 ############ QC ############
 myNormedData <- ParallelSapply(seq_along(1:n.barcodes), FUN=function(ii){
@@ -127,7 +124,6 @@ cv$BlackList[idxBlackListed] <- TRUE
 rownames(anno) <- anno$t.id
 
 ## Annotating transcript length in bp and GC content. 
-gcContentFile <- "/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.faCount.gz"
 anno2 <- read.table(gcContentFile,as.is=T,sep="\t",header=T,comment="")
 rownames(anno2) <- gsub("hg19_ensGene_", "", anno2$X.seq)
 anno2$avg.cg <- (anno2$C+anno2$G)/anno2$len
@@ -239,7 +235,8 @@ dev.off()
 n.treats <- length(TreatmentOnlyLevels)
 degs <- t(ParallelSapply(1:n.treats, FUN=function(this){
           ParallelSapply(c(0.01, 0.05, 0.1, 0.2), FUN=function(tr){
-            DE_transcripts <- which(na.omit(res[[this]]$padj)<tr)
+            #DE_transcripts <- which(na.omit(res[[this]]$padj)<tr)
+            DE_transcripts <- which(res[[this]]$padj < tr)
             DE_genes <- unique(anno[rownames(res[[this]])[DE_transcripts], 'ensg'])
             if(tr==0.1 & length(DE_genes)>0){
               outFile <- paste(degDir, '/', platePrefix, '_DEG_DE10_', TreatmentOnlyLevels[this], '.txt', sep='')
