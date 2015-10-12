@@ -25,6 +25,7 @@ args <- getArgs(defaults=defaultList)
 platePrefix      <- args$platePrefix
 cores            <- as.numeric(args$cores)
 bedTranscriptome <- args$bedTranscriptome
+gcContentFile    <- args$gcContentFile
 
 print(args)
 
