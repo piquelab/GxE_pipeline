@@ -15,14 +15,14 @@ require('qvalue')
 cores = 1 # default
 cargs <- commandArgs(trail=TRUE);
 if(length(cargs)>=1)
-  cell.type <- cargs[1]
+    cell.type <- cargs[1]
 if(length(cargs)>=2)
-  cores <- cargs[2]
+    cores <- cargs[2]
 
 ## Helper functions
 ParallelSapply <- function(...,mc.cores=cores){
-  simplify2array(mclapply(...,mc.cores=mc.cores))
-}
+    simplify2array(mclapply(...,mc.cores=mc.cores))
+  }
 
 output.folder <- paste0('QuASAR_results_', cell.type, '/')
 #system(paste0('mkdir -p ', output.folder)) # already made with prep script
@@ -32,13 +32,13 @@ system(paste0('mkdir -p ', output.folder, '/plots/QC/coverage'))
 
 ##################################################################
 ## specify covariate file and pileup directories
-##################################################################    
+##################################################################
 covDir <- '../derived_data/covariates/'
 cmd <- paste0('cat ', covDir, 'GxE_DP*_covariates.txt | grep -w ', cell.type)
 cv <- read.table(pipe(cmd), as.is=TRUE, sep='\t')
 names(cv) <- c("Plate.ID", "Barcode.ID", "Raw.Reads", "Quality.Reads", "Clean.Reads",
-               "Treatment.ID", "Treatment", "BarcodeSequence", "CellType", "CellLine",
-               "Control.ID", "Control")
+                              "Treatment.ID", "Treatment", "BarcodeSequence", "CellType", "CellLine",
+                              "Control.ID", "Control")
 cv$Treatment <- gsub(' ',  '_', cv$Treatment)
 
 ParallelSapply(unique(cv$CellLine), function(cell.line) {
@@ -46,25 +46,25 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   ## Load in the input data
   ## Loads 'ase.dat' and 'cov.file'
   load(paste0(output.folder, '/data/', cell.type, '_', cell.line, '_quasarIn.Rd'))
-
+  
   barcodes <- paste0(cov.file$Plate.ID, "-HT", cov.file$Barcode.ID) #cov.file$Barcode.ID
   treatments <- cov.file$Treatment
   n.treatments <- length(treatments)
   treatment.IDs <- cov.file$Treatment.ID
   controls <- unique(cov.file$Control.ID)
-
+  
   min.cov <- 15
   ase.dat.gt <- PrepForGenotyping(ase.dat, min.coverage=min.cov)
   str(ase.dat.gt)
-
+  
   ## prep unamed SNPs for MESH
   tempchr <- ase.dat.gt$annotations[which(ase.dat.gt$annotations$rsID=='.'), 'chr']
   temppos <- ase.dat.gt$annotations[which(ase.dat.gt$annotations$rsID=='.'), 'pos']
   ase.dat.gt$annotations[which(ase.dat.gt$annotations$rsID=='.'), 'rsID'] <- paste(tempchr, temppos, sep='-')
-
-  ##################################################################    
+  
+  ##################################################################
   ## QC
-  ##################################################################    
+  ##################################################################
   if(TRUE){
     for(ii in (1:n.treatments)){
       ##ii <- 1
@@ -75,9 +75,9 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
       oraf <- oraf[ind]
       aux <- data.frame(oraf=oraf)
       
-      pdf.file <- paste0(output.folder, '/plots/QC/oraf/', cell.type, '_', cell.line, '_', treatment.IDs[ii], '_',  ii, '_QC_oraf.pdf', sep='')	
+      pdf.file <- paste0(output.folder, '/plots/QC/oraf/', cell.type, '_', cell.line, '_', treatment.IDs[ii], '_',  ii, '_QC_oraf.pdf', sep='')
       pdf(file=pdf.file)
-                                        #hist(oraf, breaks=100)
+      ##hist(oraf, breaks=100)
       qc_plot <- ggplot(aux, aes(x=oraf))
       print(qc_plot +
             geom_histogram(binwidth=0.01) +
@@ -85,11 +85,11 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
               theme_bw()
       dev.off()
     }}
-
+  
   ########################################################################
   ##chrCol <- rainbow(length(chrList))
   chrList <- paste("chr",sort(as.numeric(gsub("chr","",unique(ase.dat$anno$chr)))),sep="")
-
+  
   for(ii in (1:n.treatments)){
     ##ii <- 3
     depth <- (ase.dat$ref[, ii]+ase.dat$alt[, ii])
@@ -127,25 +127,25 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     par(mar=oldmar)
     dev.off()
   }
-
+  
   ##################################################################
   ## Collapse the controls
   ##################################################################
   plates <- unique(gsub('-HT.*', '', barcodes))
-
+  
   controlref <- do.call('cbind', lapply(plates, function(p) {
     do.call('cbind', lapply(controls, function(this){rowSums(ase.dat.gt$ref[, barcodes[ intersect(grep(this, treatment.IDs), grep(p, barcodes))  ] ])}))
   }))
   colnames(controlref) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
-
+  
   controlalt <- do.call('cbind', lapply(plates, function(p) {
     do.call('cbind', lapply(controls, function(this){rowSums(ase.dat.gt$alt[, barcodes[ intersect(grep(this, treatment.IDs), grep(p, barcodes))  ]  ])}))
   }))
   colnames(controlalt) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
-
+  
   finalref <- cbind(controlref, ase.dat.gt$ref[, barcodes[ -grep("CO", treatment.IDs) ]])
   finalalt <- cbind(controlalt, ase.dat.gt$alt[, barcodes[ -grep("CO", treatment.IDs) ]])
-
+  
   x <- strsplit(colnames(finalref), '-')
   plt <- sapply(x, function(y) { y[1] })
   tx  <- sapply(x, function(y) { y[2] })
@@ -153,15 +153,15 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     rep(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), length(unique(plates))),
     treatments[ -grep("CO", treatment.IDs) ]), sep='_')
   treatmentIDs_final <- paste(plt,
-    c(rep(controls, length(plates)),
-    treatment.IDs[ -grep("CO", treatment.IDs) ]), sep='.')
-  #treatments_collapsed <- c(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), treatments[ -grep("CO", treatment.IDs) ])
-  #treatmentIDs_final <- c(controls, treatment.IDs[ -grep("CO", treatment.IDs) ])
-
+                              c(rep(controls, length(plates)),
+                                treatment.IDs[ -grep("CO", treatment.IDs) ]), sep='.')
+  ##treatments_collapsed <- c(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), treatments[ -grep("CO", treatment.IDs) ])
+  ##treatmentIDs_final <- c(controls, treatment.IDs[ -grep("CO", treatment.IDs) ])
+  
   colnames(finalref) <- treatments_collapsed
   colnames(finalalt) <- treatments_collapsed
-
-  ################################################################## 
+  
+  ##################################################################
   ## QuASAR Model Fitting
   ## ase.joint ~ object for joint genotyoping across all samples
   ##################################################################
@@ -174,37 +174,37 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   sample.names <- treatments_collapsed
   treatments.final <- treatments_collapsed
   ase.dat.final <- list(ref=finalref, alt=finalalt, gmat=ase.dat.gt$gmat, annotations=ase.dat.gt$annotations)
-
-  ################################################################## 
-  ## Output model data; genotypes, etc. 
+  
+  ##################################################################
+  ## Output model data; genotypes, etc.
   ## ase.joint ~ object for joint genotyoping across all samples
   ##################################################################
   out.gts <- data.frame(rsID=ase.dat.final$annotations$rsID, g0=ase.joint$gt[, 'g0'], g1=ase.joint$gt[, 'g1'], g2=ase.joint$gt[, 'g2'])
   dat.name <- paste(output.folder, "/", cell.type, "_",cell.line,'_genotypes.txt', sep='')
   write.table(out.gts, file=dat.name, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
-
+  
   ##################################################################
-  ## inference 
-  ##################################################################        
+  ## inference
+  ##################################################################
   inference.data <- lapply(seq_along(1:n.eps), function(ii){
-    ##################################################################  
+    ##################################################################
     ## sample ~ current sample to assess ASE
-    ## this.sample ~ sample name 
+    ## this.sample ~ sample name
     ## coverage ~ coverage for this sample
     ## coverage.floor ~ minimum sample wide coverage
     ## coverage.ind ~ indicator for sufficient coverage of this sample
     ## ref ~ reference count for this sample with sufficient covergae
     ## alt ~ alternate count for this sample with sufficient covergae
     ## phi ~ genotype priors for this sample
-    ## eps ~ jointly inferred error rate for this sample 
-    ## het ~ jointly inferred heterozygote probabilities for sites with 
-    ##		sufficient coverage
+    ## eps ~ jointly inferred error rate for this sample
+    ## het ~ jointly inferred heterozygote probabilities for sites with
+    ##       sufficient coverage
     ## het.ind ~ indicator for heterozygotes with p > .99
     ## annotations ~ annotations filtered by coverage and het probability
     ## q.thresh ~ q-value threshold for declaring signifigance
     ## DEBUGGING
     ##ii <- 1
-    sample <- ii					
+    sample <- ii
     this.sample <- sample.names[sample]
     coverage <- (ase.dat.final$ref[, sample] + ase.dat.final$alt[, sample])
     coverage.floor <- 5
@@ -220,9 +220,9 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     annotations <- ase.dat.final$annotations[coverage.ind, ][het.ind, ]
     q.thresh <- 0.2
     this.treatment <- treatmentIDs_final[sample]
-
+    
     cat("#Hets:", this.sample, this.treatment, numb.hets, "\n")
-
+    
     ##################################################################
     ## M ~ a grid of possible dispersion values for the Beta-binomial model
     ## aux ~ loglikelihood of the beta bionmial model across D values
@@ -240,28 +240,28 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
       Mmax
     })
     
-    cat("#Disp: ", round(Mvec, 2), "\n")   
+    cat("#Disp: ", round(Mvec, 2), "\n")
     
-    ################################################################## 
-    ## Find MLE for \rho using the the Beta-Binomial model 
-    ## Dmax2 ~ the dispersian parameter estimed from the llk in the 
-    ##		   previous step
-    ## auxLogis ~ optimization of the Beeta-biomial model in terms of 
+    ##################################################################
+    ## Find MLE for \rho using the the Beta-Binomial model
+    ## Dmax2 ~ the dispersian parameter estimed from the llk in the
+    ##         previous step
+    ## auxLogis ~ optimization of the Beeta-biomial model in terms of
     ##            logit(\rho)
-    ## rho3 ~ vector of rho estimates from expit(logit(\rho)) 
+    ## rho3 ~ vector of rho estimates from expit(logit(\rho))
     ## lrt3 ~ Recaluclate Het LRT using the beta-bionomial
     ## pval3 ~ pval of thr llk ratio test using the chi-square approximation
     ##         (does not include uncertainty in genotyping)
     ## qv3 ~ qvalue object from llkRT p-values
     ## qvals.qv3 ~ qvalues from the above p-values
     ## betas.beta.binom ~ logit(\rho) or beta value for heterozygotes
-    ## betas.se ~ standard error of the beta value  
+    ## betas.se ~ standard error of the beta value
     ## betas.z ~ Z scores of the heterozygote beta values
     ## betas.pval ~ pvalues for the above z-scores
     ##auxLogis <- optim(rep(0,sum(het.ind)),fn=logLikBetaBinomial2,
-    ##		gr=gLogLikBetaBinomial,D=Dmax2,R=ref[het.ind],A=alt[het.ind],
-    ##		method="L-BFGS-B", hessian=TRUE)
-    
+    ##gr=gLogLikBetaBinomial,D=Dmax2,R=ref[het.ind],A=alt[het.ind],
+    ##method="L-BFGS-B", hessian=TRUE)
+
     ##
     ## unbounded optimization
     ##
@@ -306,7 +306,7 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     qv.2 <- sum(qvals.qv3<0.2)
     qv.5 <- sum(qvals.qv3<0.5)
     
-    #cat("#Loci ", annotations$rsID[which(qvals.qv3<q.thresh)], "\n", sep=" ")
+    ##cat("#Loci ", annotations$rsID[which(qvals.qv3<q.thresh)], "\n", sep=" ")
     cat("#ASE:", this.treatment, qv.2, paste0("(", q.thresh*100, "%FDR)"), "Pi0:", round(this.pi0, 3), "\n")
 
     ## output complete information for every heterozygote
@@ -322,7 +322,7 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     complete.dat$qval <- qvals.qv3
     filename.all <- paste0(output.folder, '/', cell.type, '_', cell.line, '_', this.treatment, '_allOutput.txt')
     write.table(complete.dat, file=filename.all, row.names=FALSE, col.name=TRUE, quote=FALSE)
-                          
+    
     ## return data frame
     rsID <- annotations
     betas <- betas.beta.binom
@@ -337,15 +337,15 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   save(inference.data, file=dat.name)
   str(inference.data)
   ##load(dat.name)
-
+  
   ##########################################
-  ## 0.) plots for average rho aross the individual 
+  ## 0.) plots for average rho aross the individual
   ##########################################
   all_rho_hat <- Reduce(c, sapply(seq_along(1:length(inference.data)), FUN=function(ii){inference.data[[ii]]$dat$rho}))
   mean_rho_hat <- round(mean(all_rho_hat), 4)
   median_rho_hat <- round(median(all_rho_hat), 4)
   se_rho_hat <- sd(all_rho_hat)
-
+  
   all_ref <- Reduce(c, sapply(seq_along(1:length(inference.data)), FUN=function(ii){inference.data[[ii]]$dat$refCount}))
   all_alt <- Reduce(c, sapply(seq_along(1:length(inference.data)), FUN=function(ii){inference.data[[ii]]$dat$altCount}))
   all_coverage <- '+'(all_ref, all_alt)
@@ -358,7 +358,7 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   abline(v=mean_rho_hat, lty=2, col='red')
   axis(1, at=seq(0, 1, .1)); axis(2)
   dev.off()
-
+  
   ##########################################
   ## 1.) QQ-plots for all treatments
   ##########################################
@@ -372,14 +372,14 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     coverage <- inference.data[[ii]]$dat$refCount + inference.data[[ii]]$dat$altCount
     avg.depth <- floor(mean(coverage))
     ##disp <- round(mean(inference.data[[ii]]$meta.dat$dispersion), 2)
-
+    
     ## extract pvalues from only the high coverage loci
     pval_high <- inference.data[[1]]$dat$pval[which(coverage>100)]
     qqp <- qqplot(-log10(ppoints(length(pval_high))),-log10(pval_high), plot.it=F)
-         
+    
     pdf.file <- paste(output.folder, '/plots/QQ/', cell.type, '_', cell.line, '_', treatment, "_cov", min.cov, '_', ii, '_QQ', '.pdf', sep='')
     title <- paste0(cell.line, " | ", treatments_collapsed[ii], " | Pi0=", pi0, " | #hets=", hets, "\n #qv.2=", qv.2, " | avg.depth=", avg.depth) #, " | disp=", disp)
-    pdf(file=pdf.file)
+      pdf(file=pdf.file)
     qq(pvals)
     points(qqp,pch='.',cex=5,col='blue')
     title(main=title)
@@ -392,7 +392,7 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   ## 2.) Expression table across all treatments
   ##########################################
   asetable <- t(sapply(seq_along(1:length(inference.data)), FUN=function(ii){
-    ##ii <- 1 
+    ##ii <- 1
     sapply(c(.01, .05, .1, .2), FUN=function(jj){sum(inference.data[[ii]]$dat$qv < jj)})
   }))
   
@@ -400,7 +400,7 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   colnames(asetable) <- c('Q<.01', 'Q<.05', 'Q<.1', 'Q<.2')
   
   outfile <- paste(output.folder, '/', cell.type, "_",cell.line, '_Qhits.txt', sep='')
-  write.table(asetable, file=outfile, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t") 
+  write.table(asetable, file=outfile, row.names=TRUE, col.names=TRUE, quote=FALSE, sep="\t")
 })
 
 ##                          ##

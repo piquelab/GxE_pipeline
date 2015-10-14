@@ -13,23 +13,30 @@ bamFolder=./
 Qsub.ppn=12
 Qsub.q=mmtxq
 Qsub.N=bams
-
+Qsub.t=100 # throttle
 
 ## Utility commands & job scheduling
 #.SECONDARY:
 
 %.Qsub:
-	while ((`qme | wc -l` > 100)); do sleep 1; done
+	while ((`qme | grep $(Qsub.q) | wc -l` > $(Qsub.t))); do sleep 1; done
 	touch $@
 	echo "cd $${PWD}; make $*" | qsub -q $(Qsub.q) -l nodes=1:ppn=$(Qsub.ppn) -N $(Qsub.N) -o $@ -e $@.e
 	sleep 1;	
 
 ## Workflow: align, quality filt, remove mapping bias, remove duplicates
+all_raw: $(patsubst $(fastqs)/%_L1_R1.fastq.gz, %_raw_count.txt, $(wildcard $(fastqs)/*_L1_R1.fastq.gz))
 all_bams: $(patsubst $(fastqs)/%_R1.fastq.gz, %.out.Qsub, $(wildcard $(fastqs)/*_R1.fastq.gz))
+all_bams_byBc: $(patsubst $(fastqs)/%_L1_R1.fastq.gz, %_all.out.Qsub, $(wildcard $(fastqs)/*_R1.fastq.gz))
 all_quality: $(patsubst %_L1.out, %_quality.bam.Qsub, $(wildcard *_L1.out))
 all_fq: $(patsubst %_quality.bam, %_quality.remap.fq1.gz.Qsub, $(wildcard *_quality.bam))
 all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_quality.remap.fq1.gz))
 
+
+## Obtain the raw read counts from the fastq files
+%_raw_count.txt:
+	find ../fastqs/ -name $*_L*_R1.fastq.gz | while read f; do \
+		zcat $$f | wc -l; done | awk '{ s+=$$1 } END {print (s/4)*2}' > $@
 
 ## Align the sequencing reads using the STAR aligner
 %.out: $(fastqs)/%_R1.fastq.gz $(fastqs)/%_R2.fastq.gz
@@ -40,10 +47,15 @@ all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_qua
 		--readFilesIn $^ \
 		--readFilesCommand zcat \
 		--outFileNamePrefix $*.out/$*. \
-		--outSAMtype BAM Unsorted
+		--outSAMtype BAM Unsorted \
+		--genomeLoad LoadAndKeep
 	samtools sort -@ $(Qsub.ppn) $*.out/$*.Aligned.out.bam $*.out/$*.Aligned.sort
 	samtools index $*.out/$*.Aligned.sort.bam
 	samtools idxstats $*.out/$*.Aligned.sort.bam > $*.out/$*.Aligned_idxstats.txt
+
+%_all.out:
+	STAR --genomeDir $(genomeindex) --genomeLoad LoadAndExit
+	find ../fastqs/ -name $*_*R1.fastq.gz | sed s,.*$*\\_,, | sed s,_.*,, | while read ln; do make $*_$$ln.out; done
 
 ## Merge technical replicates and quality filter
 %_merged.bam: 
@@ -102,9 +114,14 @@ all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_qua
 	samtools view -c $@ > $*_clean_count.txt
 	samtools index $@
 
-## TODO: add 'clean_intermediate' that will remove intermediate bam files
-clean:
-	rm *sorted*
-	rm *merged*
-	rm *quality*
-	rm *clean*
+clean_intermediate:
+	rm *_merged.bam
+	rm *_quality.bam
+	rm *.sort.bam
+	rm *_quality.keep.bam
+	rm *_quality.to.remap.bam
+	rm *_quality.remap.keep.bam
+	rm *_quality.remap.merged.bam
+	rm *_rmdup.bam
+	rm *_snpFilt.bam
+	find ./ -name '*Aligned.*bam' | xargs rm
