@@ -1,8 +1,9 @@
 #!/bin/bash
-plate=$1
-cellLine=$2
-ncpus=2
-queue=mmtxq
-jobName=${plate}-${cellLine}
+## Run QuASAR for all individuals of a given cell type
 
-echo "cd ${PWD}; Rscript QuASAR_pipeline.R ${plate} ${cellLine}" | qsub -q ${queue} -l nodes=1:ppn=${ncpus} -N ${jobName} -o ${jobName}.Qsub -e ${jobName}.Qsub.e 
+cellType=$1
+ncpus=4
+queue=mmtxq
+jobName=QuASAR-${cellType}
+
+echo "cd ${PWD}; Rscript QuASAR_pipeline.R ${cellType}" | qsub -q ${queue} -l nodes=1:ppn=${ncpus} -N ${jobName} -o ${jobName}.Qsub -e ${jobName}.Qsub.e 

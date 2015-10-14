@@ -2,23 +2,16 @@
 set -v
 set -e
 
-platenum=$1
+## Set up joint genotyping directory
+mkdir -p ../../jointGenotyping/
+cp QuASAR_* ../../jointGenotyping/
 
-if [ "$2" = "-w" ] 
-then
-  plate=$1-WASP;
-else
-  plate=$1;
-fi
+cat ../../derived_data/covariates/GxE_DP* | grep -v 'Plate.ID' | cut -f 9 | sort | uniq | \
+    while read plate; do
 
-## results directory & QuASAR scripts
-mkdir -p ../../jointGenotyping/QuASAR_results_${plate}/data
-cp QuASAR_* ../../jointGenotyping/QuASAR_results_${plate}
-## this is redundant. make it better by checking for util_QuASAR_runAll.sh before copying it.
-cp util_QuASAR_runAll.sh ../../jointGenotyping/
+    ## results directory & QuASAR scripts
+    mkdir -p ../../jointGenotyping/QuASAR_results_${plate}/data
 
-## link to all files for analysis/
-cd ../../jointGenotyping/QuASAR_results_${plate}/data/
-ls ../../../derived_data/${plate}/pileups/*.pileup.clean.bed.gz | while read f; do ln -sv $f; done
+    done
 
 
