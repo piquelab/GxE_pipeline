@@ -1,5 +1,5 @@
 
-Expression pipeline
+QuASAR pipeline
 ===================
 This directory contains scripts related to the joint genotyping & Allele-specific expression testing.
 
