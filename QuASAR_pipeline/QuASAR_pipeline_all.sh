@@ -1,7 +1,8 @@
 #!/bin/bash
-plate=$1
-less ../../derived_data/covariates/GxE_${plate}_covariates.txt \
-	| awk '$10!="CellLine" {print $10}' \
+## Run QuASAR on all cell types
+
+less ../../derived_data/covariates/GxE_DP*_covariates.txt \
+	| awk '$9!="CellType" {print $9}' \
 	| sort \
 	| uniq \
-	| while read cl; do sh QuASAR_pipeline.sh ${plate} $cl; done  
+	| while read cl; do sh QuASAR_pipeline.sh $cl; done  

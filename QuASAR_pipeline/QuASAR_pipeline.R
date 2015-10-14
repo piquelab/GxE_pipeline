@@ -8,14 +8,23 @@
 
 library('QuASAR')
 library('ggplot2')
-library(qqman)
-require(qvalue)
+library('parallel')
+library('qqman')
+require('qvalue')
 
+cores = 1 # default
 cargs <- commandArgs(trail=TRUE);
 if(length(cargs)>=1)
   cell.type <- cargs[1]
+if(length(cargs)>=2)
+  cores <- cargs[2]
 
-output.folder <- paste0(cell.type, '/')
+## Helper functions
+ParallelSapply <- function(...,mc.cores=cores){
+  simplify2array(mclapply(...,mc.cores=mc.cores))
+}
+
+output.folder <- paste0('QuASAR_results_', cell.type, '/')
 #system(paste0('mkdir -p ', output.folder)) # already made with prep script
 system(paste0('mkdir -p ', output.folder, '/plots/QQ'))
 system(paste0('mkdir -p ', output.folder, '/plots/QC/oraf'))
@@ -32,11 +41,11 @@ names(cv) <- c("Plate.ID", "Barcode.ID", "Raw.Reads", "Quality.Reads", "Clean.Re
                "Control.ID", "Control")
 cv$Treatment <- gsub(' ',  '_', cv$Treatment)
 
-sapply(unique(cv$CellLine), function(cell.line) {
+ParallelSapply(unique(cv$CellLine), function(cell.line) {
 
   ## Load in the input data
   ## Loads 'ase.dat' and 'cov.file'
-  load(paste0(cell.type, '/data/', cell.type, '_', cell.line, '_quasarIn.Rd'))
+  load(paste0(output.folder, '/data/', cell.type, '_', cell.line, '_quasarIn.Rd'))
 
   barcodes <- paste0(cov.file$Plate.ID, "-HT", cov.file$Barcode.ID) #cov.file$Barcode.ID
   treatments <- cov.file$Treatment
