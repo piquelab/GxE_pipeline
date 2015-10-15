@@ -19,8 +19,7 @@ Initialize the expression analysis directory using the utility script:
 1. Asses differential gene expression with DESeq2
 2. Calculate transcript FPKMs
 3. Select transcripts representative of a gene, for gene-based analyses
-4. Combine expression and differential expression into a master table
-5. Combine expression data with the QuASAR output
+4. Combine expression data with the QuASAR output
 
 ## Notes
 Each step is run on one plate at a time.
@@ -82,27 +81,12 @@ Collapse expression data across individuals, and report the higest expressed tra
 ```
 script: expr_getMeanAndTopExpr.R
 dependencies: step 2
-in: plate number, file indicator, cores
-out: <plate>.<indicator>.meanExpr.[all | perGene].perGene and <plate>.<indicator>.topTx.Rd
+in: cell type, file indicator, cores
+out: <plate>.<indicator>.meanExpr.[all | perGene].perGene and <plate>.<indicator>.topTx.Rd [per plate of given cell type]
 ```
 Example:
 ```
- $ Rscript expr_getMeanAndTopExpr.R DP1 bwa.counts.fpkm.adj 12
-```
-
-##### Step 4: Combine expression and differential expression into a master table
-Merge expression and differential expression data. Outputs two files with different approaches to transcripts with NA logFC values. Either remove them and drop transcripts ("NaRm"), or set them to 0 ("Na0s").
-
-```
-script: expr_makeExpressionTable.R
-dependencies: step 1 & 3
-in: plate number, file indicator, type (from step 3)
-out: <plate>.<indicator>.<type>.master.[NaRm | Na0s]
-```
-
-Example:
-```
- $ Rscript expr_makeExpressionTable.R DP1 bwa.counts.fpkm.adj all
+ $ Rscript expr_getMeanAndTopExpr.R LCL bwa.counts.fpkm.adj 12
 ```
 
 ##### Optional: Generate PCA and Heatmap plots from expression values
