@@ -20,18 +20,6 @@
 library(parallel)
 source('../../GxE_pipeline/misc/getArgs.R')
 
-## ## Get command-line arguments ##
-## cargs<-commandArgs(trail=TRUE);
-## if (length(cargs)>=1) { platePrefix <- cargs[1] }
-## if (length(cargs)>=2) { bamMethod   <- cargs[2] }
-## ## Optional inputs: CPUs and Transcriptome files
-## cores <- 1
-## if (length(cargs)>=3) { cores <- cargs[3] }
-## bedTranscriptome <- paste0(LPG, "/data/RefTranscriptome/ensGene.hg19.2014.bed.gz")
-## if (length(cargs)>=4) { bedTranscriptome <- cargs[4] }
-## gcContentFile <- gsub('bed.gz', 'faCount.gz', bedTranscriptome)
-## if (length(cargs)>5) { gcContentFile <- cargs[5] }
-
 ## Get command-line arguments.
 defaultList = list(
   rmLow=FALSE,

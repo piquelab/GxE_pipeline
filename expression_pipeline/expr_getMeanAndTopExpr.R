@@ -31,10 +31,10 @@ word             <- args$word
 cores            <- as.numeric(args$cores)
 bedTranscriptome <- args$bedTranscriptome
 
+print(args)
+
 ## Check for required arguments
 stopifnot(!is.null(cell.type) & !is.null(word))
-
-print(args)
 
 ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
