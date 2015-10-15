@@ -4,33 +4,52 @@
 ## Convert read counts to FPKM measurements. Uses a gene model file
 ## such as one from gencode or ensembl 
 ##
-## INPUT/ARGS:
-##   platePrefix - plate to analyzie (e.g., DP1)
-##   bamMethod - aligner used, part of input filename
-##   cores - number of cores for parallel sapply
+## Required Arguments:
+##   platePrefix - character; plate to analyzie (e.g., DP1)
+##   bamMethod - character; aligner used, part of input filename
+##
+## Optional Arguments:
+##   rmLow - logical; to remove lowly expressed transcripts
+##   cores - numeric; number of cores for parallel sapply
+##   bedTranscriptome - character; transcriptome bed file
+##   gcContentFile - character; file with GC content of transcripts
 ##   
 #########################################################################
 
 ## Libraries ##
 library(parallel)
-LPG <- Sys.getenv("LPG")
+source('../../GxE_pipeline/misc/getArgs.R')
 
-## Get command-line arguments ##
-cargs<-commandArgs(trail=TRUE);
-if (length(cargs)>=1) { platePrefix <- cargs[1] }
-if (length(cargs)>=2) { bamMethod   <- cargs[2] }
-if (length(cargs)>=3) { cores       <- cargs[3] }
+## Get command-line arguments.
+defaultList = list(
+  rmLow=FALSE,
+  cores=1,
+  bedTranscriptome="/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.bed.gz",
+  gcContentFile="/wsu/home/groups/piquelab/data/RefTranscriptome/ensGene.hg19.2014.faCount.gz"
+  )
+args <- getArgs(defaults=defaultList)
+platePrefix      <- args$platePrefix
+bamMethod        <- args$bamMethod
+rmLow            <- args$rmLow
+cores            <- as.numeric(args$cores)
+bedTranscriptome <- args$bedTranscriptome
+gcContentFile    <- args$gcContentFile
 
-## Create the output directory
-system(paste0('mkdir -p ', platePrefix))
+print(args)
 
-## Get base plate ID for deep plates
-plateBase <- gsub('DP', 'P', platePrefix) 
-
-if (cores < 1){cores <- 1}
 ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
 }
+
+## Modify the filename if 'rmLow' is indicated
+if ( rmLow ) {
+  infix = "counts.fpkm.rmlow"
+} else {
+  infix = "counts.fpkm"
+}
+
+## Create the output directory
+system(paste0('mkdir -p ', platePrefix))
 
 ## Get the FPKM data
 readCounts = paste0('../../derived_data/', platePrefix, '/counts/GC/',
@@ -39,23 +58,19 @@ countsData <- read.table(readCounts, as.is=T, sep='\t', header=T)
 barcodes <- gsub(paste0(platePrefix, '.HT'), '', colnames(countsData))
 
 ## Get the covariate file for the indicated plate
-## If analyzing a deep plate, remove unused barcodes
-cv <- read.table(paste0('../../derived_data/covariates/GxE_', plateBase,
+cv <- read.table(paste0('../../derived_data/covariates/GxE_', platePrefix,
                         '_covariates.txt'), as.is=T, sep='\t', header=T)
-cv <- cv[ cv$Barcode.ID %in% barcodes, ]
 
 ## Load the reference transcriptome (ensembl)
-bedtranscript <- paste0("less ", LPG,
-  "/data/RefTranscriptome/ensGene.hg19.v2.bed.gz", " | cut -f 1-4,7,8,13,14")
-transcriptAnno <- read.table(file=pipe(bedtranscript),as.is=T,sep="\t")
+transcriptAnno <- read.table(as.is=T, sep="\t",
+                             file=pipe(paste0("less ", bedTranscriptome, " | cut -f 1-4,7,8,13,14")))
 colnames(transcriptAnno) <-  c("chr", "start", "stop", "t.id", "c.start",
                                "c.stop", "ensg", "g.id")
 rownames(transcriptAnno) <- transcriptAnno$t.id
 
 ## Annotate transcript length and average GC content
-gcContentFile <- paste0(LPG, "/data/RefTranscriptome/ensGene.hg19.faCount.gz")
 gcAnno <- read.table(gcContentFile,as.is=T, sep="\t", header=T, comment="")
-rownames(gcAnno) <- gsub('hg19_ensGene_', '', gcAnno$X.seq)
+rownames(gcAnno) <- gcAnno$X.seq
 gcAnno <- gcAnno[1:dim(gcAnno)[1]-1,] # trim the "totals" column
 gcAnno$avg.cg <- (gcAnno$C + gcAnno$G) / gcAnno$len
 transcriptAnno$txLen <- gcAnno[transcriptAnno$t.id, "len"]
@@ -88,17 +103,17 @@ cdata2 <- ParallelSapply(1:ncol(cdata), function(jj){
 colnames(cdata2) <-  colnames(cdata)
 geneAnno2 <- transcriptAnno[rownames(cdata2), ]
 
-## Remove the lowly expressed transcripts
-keep  <- rowMeans(cdata2 > 0.1) > 0.9
+if ( rmLow ) {
+  ## Remove the lowly expressed transcripts
+  keep  <- rowMeans(cdata2 > 0.1) > 0.9
+  cdata2 <- cdata2[ keep, ]
+  transcriptAnno <- transcriptAnno[ rownames(cdata2), ]
+}
 
 ## Save the fpkm values
 fpkms <- cdata2
 save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.all.Rd"))
-
-fpkms <- cdata2[ keep, ]
-save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.Rd"))
+     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".", infix, ".Rd"))
 
 txInd <- rownames(cdata2)
 fit.lm <- lm(log10(cdata2[,1] + 1e-6) ~
@@ -116,11 +131,7 @@ colnames(cdata3) <- colnames(cdata2)
 
 fpkms <- cdata3
 save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.full.gc.Rd"))
-
-fpkms <- cdata3[ keep, ]
-save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.gc.Rd"))
+     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".", infix, ".gc.Rd"))
 
 ## Quantile normalization (by sample)
 cdata4 <- apply(cdata3,2,function(x){
@@ -131,11 +142,7 @@ rownames(cdata4) <- rownames(cdata3)
 
 fpkms <- cdata4
 save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.full.norm.Rd"))
-
-fpkms <- cdata4[ keep, ]
-save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".counts.fpkm.norm.Rd"))
+     file=paste0(platePrefix, "/", platePrefix, ".", bamMethod, ".", infix, ".norm.Rd"))
 
 
 ## ADJUSTMENTS - two separate methods
@@ -147,16 +154,7 @@ for (cl in 1:length(unique(as.numeric(cv2$CellLine)))) {
     fpkms[,as.numeric(cv2$CellLine)==cl] - avg
 }
 save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".counts.fpkm.full.adj.Rd"))
-
-fpkms <- cdata4[ keep, ]
-for (cl in 1:length(unique(as.numeric(cv2$CellLine)))) {
-  avg <- apply(fpkms[,as.numeric(cv2$CellLine)==cl], 1, mean)
-  fpkms[,as.numeric(cv2$CellLine)==cl] <-
-    fpkms[,as.numeric(cv2$CellLine)==cl] - avg
-}
-save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".counts.fpkm.adj.Rd"))
+     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".", infix, ".adj.Rd"))
 
 ## 2) Remove controls
 fpkms <- cdata4
@@ -171,21 +169,7 @@ for (cl in levels(cv2$CellLine)) {
 }
 fpkms <- fpkms[,-drop] # Drop the "empty" control column
 save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".counts.fpkm.full.cntRm.Rd"))
-
-fpkms <- cdata4[ keep, ]
-drop = c()
-for (cl in levels(cv2$CellLine)) {
-  for (cnt in levels(cv2$Control.ID)) {
-    fpkms[,cv2$CellLine==cl & cv2$Control.ID==cnt] <-
-      (fpkms[,cv2$CellLine==cl & cv2$Control.ID==cnt] -
-       fpkms[,cv2$CellLine==cl & cv2$Treatment.ID==cnt])
-    drop <- c(drop, which(cv2$CellLine==cl & cv2$Treatment.ID==cnt))
-  }
-}
-fpkms <- fpkms[,-drop] # Drop the "empty" control column
-save(list=c("cv2", "fpkms"),
-     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".counts.fpkm.cntRm.Rd"))
+     file=paste0(platePrefix, "/", platePrefix, '.', bamMethod, ".", infix, ".cntRm.Rd"))
 
 ## the end ##
 
