@@ -115,7 +115,6 @@ all_clean: $(patsubst %_quality.remap.fq1.gz, %_clean.bam.Qsub, $(wildcard *_qua
 	samtools index $@
 
 clean_intermediate:
-	rm *_merged.bam
 	rm *_quality.bam
 	rm *.sort.bam
 	rm *_quality.keep.bam
@@ -123,5 +122,4 @@ clean_intermediate:
 	rm *_quality.remap.keep.bam
 	rm *_quality.remap.merged.bam
 	rm *_rmdup.bam
-	rm *_snpFilt.bam
 	find ./ -name '*Aligned.*bam' | xargs rm
