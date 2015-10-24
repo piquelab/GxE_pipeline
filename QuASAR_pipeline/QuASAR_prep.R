@@ -14,15 +14,20 @@ ParallelSapply <- function(...,mc.cores=cores){
   simplify2array(mclapply(...,mc.cores=mc.cores))
 }
 
+## function UnionExtractFields
+## First, get the unique list of SNP positions being interrogated for
+## this individual. Then, 
 UnionExtractFields <- function (fileList, combine = FALSE) 
   {
     tmpFile <- scan(pipe("mktemp -t"), character(0))
     system(
       paste("zcat ",
             paste(fileList, collapse = " "),
-            " | grep -v -w '^chr\\|^NA' | cut -f 1-4,6-7 | sortBed -i stdin | uniq | gzip > ",
+#            " | grep -v -w '^chr\\|^NA' | cut -f 1-4,6-7 | sortBed -i stdin | uniq | gzip > ",
+            " | grep -v -w '^chr\\|^NA' | cut -f 1-4,6-7 | sortBed -i stdin | uniq > ",
             tmpFile))
-    anno <- read.table(gzfile(tmpFile), sep = "\t", as.is = T)
+    #anno <- read.table(gzfile(tmpFile), sep = "\t", as.is = T)
+    anno <- read.table(tmpFile, sep = "\t", as.is = T)
     aux <- sapply(fileList, function(fn) {
       cat("Processing:", fn, "\n")
       command = paste("intersectBed -a ", tmpFile, " -b ", 
