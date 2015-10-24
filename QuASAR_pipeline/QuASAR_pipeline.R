@@ -142,19 +142,30 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
     do.call('cbind', lapply(controls, function(this){rowSums(ase.dat.gt$alt[, barcodes[ intersect(grep(this, treatment.IDs), grep(p, barcodes))  ]  ])}))
   }))
   colnames(controlalt) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
+
+  ## If any are zero, i.e., in one plate & not the other, remove
+  controlref <- controlref[, -which(apply(controlref, 2, sum) == 0) ]
+  controlalt <- controlalt[, -which(apply(controlalt, 2, sum) == 0) ]
   
   finalref <- cbind(controlref, ase.dat.gt$ref[, barcodes[ -grep("CO", treatment.IDs) ]])
   finalalt <- cbind(controlalt, ase.dat.gt$alt[, barcodes[ -grep("CO", treatment.IDs) ]])
-  
-  x <- strsplit(colnames(finalref), '-')
-  plt <- sapply(x, function(y) { y[1] })
-  tx  <- sapply(x, function(y) { y[2] })
-  treatments_collapsed <- paste(plt, c(
-    rep(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), length(unique(plates))),
-    treatments[ -grep("CO", treatment.IDs) ]), sep='_')
-  treatmentIDs_final <- paste(plt,
-                              c(rep(controls, length(plates)),
-                                treatment.IDs[ -grep("CO", treatment.IDs) ]), sep='.')
+
+  txTab <- unique(cv[, c("Treatment.ID", "Treatment")])
+  rownames(txTab) <- txTab$Treatment.ID
+
+  ## Create a lookup table to get the final treatment names
+  ## rbind is fickle: needs same types (no coersion), same names (or none)
+  a <- unname(unique(cv[-grep('CTRL', cv$Treatment), c("Plate.ID", "Barcode.ID", "Treatment.ID", "Treatment")]))
+  a[, 2] <- as.character(a[, 2])
+  b <- unname(unique(cv[grep('CTRL', cv$Treatment), c("Plate.ID", "Treatment.ID", "Treatment.ID", "Treatment")]))
+  names(a) <- names(b) <- c("Plate.ID", "ID", "Treatment.ID", "Treatment")
+  txTab <- rbind(a, b)
+  txTab$collapsed <- paste(txTab$Plate.ID, txTab$Treatment, sep='_')
+  txTab$final <- paste(txTab$Plate.ID, txTab$Treatment.ID, sep='.')
+  rownames(txTab) <- paste(txTab$Plate.ID, txTab$ID, sep='-')
+
+  treatments_collapsed <- txTab[gsub('HT', '', colnames(finalref)), "collapsed"]
+  treatmentIDs_final <- txTab[gsub('HT', '', colnames(finalref)), "final"]
   ##treatments_collapsed <- c(unique(unlist(subset(cov.file, Treatment.ID %in% controls, Treatment))), treatments[ -grep("CO", treatment.IDs) ])
   ##treatmentIDs_final <- c(controls, treatment.IDs[ -grep("CO", treatment.IDs) ])
   
