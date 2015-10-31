@@ -161,29 +161,67 @@ write.table(full_dat[order(full_dat$plate, full_dat$chr, full_dat$pos), outCols]
 ## record as the treatment, instead of on their own line (i.e., none of the
 ## controls should be listed in the "treatment" column)
 
-## Match each SNP to its control & add control data to the table
+## ## Match each SNP to its control & add control data to the table
+## c.tab <- unique(full_dat[, c("treatment", "control")])
+## rownames(c.tab) <- c.tab$treatment
+## ids <- sapply(full_dat$snp, function(snp) {
+##   tx <- unlist(strsplit(snp, ';'))[4]
+##   gsub(tx, c.tab[tx, "control"], snp)
+## })
+## m <- match(ids, full_dat$snp)
+
+## ## Some SNPs are covered in the treatment but not the control, remove them
+## ind <- is.na(m)
+## meshIn <- full_dat[ !ind, ]
+## m <- na.omit(m)
+## cat("Warning:", sum(ind), "records thrown out due to low-coverage controls\n")
+
+## ## double-check
+## meshIn$beta.c <- meshIn[m, "beta"]
+## meshIn$se.c   <- meshIn[m, "beta.se"]
+## meshIn$pval.c <- meshIn[m, "pval"]
+## meshIn$qval.c <- meshIn[m, "qval"]
+## meshIn$fpkm.c <- meshIn[m, "fpkm"]
+## meshIn$fpkm.indiv.c <- meshIn[m, "fpkm.indiv"]
+
+## Much much much too long
+## meshIn <- do.call('rbind', lapply(1:nrow(full_dat), function(i) {
+##   x <- full_dat[i, ]
+##   ctl <- gsub(x$treatment, x$control, x$snp)
+##   ind <- which(full_dat$snp == ctl)
+##   stopifnot(length(ind) < 2)
+##   if ( length(ind) == 1 ) {
+##     x$beta.c <- full_dat[ind, "beta"]
+##     x$se.c   <- full_dat[ind, "beta.se"]
+##     x$pval.c <- full_dat[ind, "pval"]
+##     x$qval.c <- full_dat[ind, "qval"]
+##     x$fpkm.c <- full_dat[ind, "fpkm"]
+##     x$fpkm.indiv.c <- full_dat[ind, "fpkm.indiv"]
+##     x
+##   } else {
+##     NULL ## SNP in treatment with insufficient coverage in control
+##   }
+## })
+## )    
+
 c.tab <- unique(full_dat[, c("treatment", "control")])
 rownames(c.tab) <- c.tab$treatment
-ids <- sapply(full_dat$snp, function(snp) {
+ids <- ParallelSapply(full_dat$snp, function(snp) {
   tx <- unlist(strsplit(snp, ';'))[4]
   gsub(tx, c.tab[tx, "control"], snp)
 })
-m <- match(ids, full_dat$snp)
 
-## Some SNPs are covered in the treatment but not the control, remove them
-ind <- is.na(m)
-meshIn <- full_dat[ !ind, ]
-m <- na.omit(m)
-cat("Warning:", sum(ind), "records thrown out due to low-coverage controls\n")
+ind <- ids %in% full_dat$snp
+meshIn <- full_dat[ind, ]
+m <- match(ids[ind], meshIn$snp)
 
-## double-check
 meshIn$beta.c <- meshIn[m, "beta"]
 meshIn$se.c   <- meshIn[m, "beta.se"]
 meshIn$pval.c <- meshIn[m, "pval"]
 meshIn$qval.c <- meshIn[m, "qval"]
 meshIn$fpkm.c <- meshIn[m, "fpkm"]
 meshIn$fpkm.indiv.c <- meshIn[m, "fpkm.indiv"]
-  
+
 ## Update the colnames
 colnames(meshIn)[grep("^beta$", colnames(meshIn))] <- "beta.t"
 colnames(meshIn)[grep("^beta.se$", colnames(meshIn))] <- "se.t"
