@@ -144,8 +144,14 @@ ParallelSapply(unique(cv$CellLine), function(cell.line) {
   colnames(controlalt) <- sapply(plates, function(p) { sapply(controls, function(c) { paste0(p, '-', c) }) })
 
   ## If any are zero, i.e., in one plate & not the other, remove
-  controlref <- controlref[, -which(apply(controlref, 2, sum) == 0) ]
-  controlalt <- controlalt[, -which(apply(controlalt, 2, sum) == 0) ]
+  torm = which(apply(controlref, 2, sum)==0)
+  if ( length(torm) > 0 ) {
+    controlref <- controlref[, -which(apply(controlref, 2, sum) == 0) ]
+  }
+  torm = which(apply(controlalt, 2, sum)==0)
+  if ( length(torm) > 0 ) {
+    controlalt <- controlalt[, -which(apply(controlalt, 2, sum) == 0) ]
+  }
   
   finalref <- cbind(controlref, ase.dat.gt$ref[, barcodes[ -grep("CO", treatment.IDs) ]])
   finalalt <- cbind(controlalt, ase.dat.gt$alt[, barcodes[ -grep("CO", treatment.IDs) ]])
