@@ -67,7 +67,7 @@ n.samples <- length(parmfiles)
   write.table(bfs_out, file=paste(myDir, '/', root, '_bayesFactors.txt', sep=''), quote=FALSE, row.names=FALSE, sep='\t')
 
   ## prep data for multiclasslr
-  multinomialdat <- TRUE
+  multinomialdat <- FALSE
   if(multinomialdat){
     #dd <- read.table(
     #  "~/piquelab/charvey/GxE/jointGenotyping/QuASAR_results_masterTable_4/data_logFC/QuASAR.bwa.counts.fpkm.gc.perGene.Na0s.txt",
