@@ -9,7 +9,10 @@ library(reshape2)
 source('~/piquelab/charvey/GxE/jointGenotyping/scripts/misc/mesh_analysis_functions.R')
 source('/wsu/home/groups/piquelab/charvey/tools/R_tools/myParallel.R')
 
-## x11(display="localhost:11.0" ,type="Xlib")
+cargs <- commandArgs(trail=TRUE)
+if( length(cargs) >= 1) {
+    meshinput <- cargs[1]
+}
 
 ###########################################################################
 system('mkdir -p plots')
@@ -17,7 +20,7 @@ system('mkdir -p plots')
 ###########################################################################
 ## lets grab gene id information so we can annotate significant SNPs
 ###########################################################################
-ddgene <- read.table("../data_logFC/MESH_input.txt", header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'g.id')]
+ddgene <- read.table(meshinput, header=TRUE, stringsAsFactors=FALSE)[, c('snp', 'ensg')]
 
 ###########################################################################
 ## snp | beta.con | se.con | beta.treat | se.treat | bf1 | bf2 | bf3 | post4
@@ -36,18 +39,19 @@ ddtreat$treat[(seq(1, dim(ddtreat)[1], 2))] <- "control"
 
 snps_treat <- do.call(rbind, lapply(ddtreat$snp, function(snp){
   # snp <- ddtreat$snp[1]
-  strsplit(snp, ":")[[1]]
+  strsplit(snp, ";")[[1]]
 })); colnames(snps_treat) <- c('plate', 'line', 'rsID', 'treatment')
 
 plotdat_treat <- data.frame(snp=ddtreat[, 'snp'], snps_treat, ddtreat[, -1], stringsAsFactors=FALSE)
 plotdat_treat <- merge(plotdat_treat, ddgene, by='snp')
 
 ## forest plot for treatment configurations
-pd <- position_dodge(width=0.5, height=NULL)
+pd <- position_dodge(width=0.5) #, height=NULL) # 'height' not in 1.0.1
 p <- ggplot(plotdat_treat, aes(x=snp, y=beta, colour=treat))
 pdf('./plots/Mesh_allBetas_treatment_config.pdf', width=9, height=12)
 p + geom_abline(intercept=0, slope=0, colour='red',linetype=4) +
-    layer(geom="point", position=pd, geom_params=list(size=3.2)) +
+    ##layer(geom="point", position=pd, geom_params=list(size=3.2)) +
+    geom_point(size=3.2, position=pd) +
     geom_errorbar(aes(ymin=lb , ymax=ub), width=0.5, size=1, position=pd) +
     theme_bw() +
     coord_flip() +
@@ -76,18 +80,19 @@ ddcontrol$treat[(seq(1, dim(ddcontrol)[1], 2))] <- "control"
 
 snps_control <- do.call(rbind, lapply(ddcontrol$snp, function(snp){
   # snp <- ddtreat$snp[1]
-  strsplit(snp, ":")[[1]]
+  strsplit(snp, ";")[[1]]
 })); colnames(snps_control) <- c('plate', 'line', 'rsID', 'treatment')
 
 plotdat_control <- data.frame(snp=ddcontrol[, 'snp'], snps_control, ddcontrol[, -1], stringsAsFactors=FALSE)
 plotdat_control <- merge(plotdat_control, ddgene, by='snp')
 
 ## forest plot for treatment configurations
-pd <- position_dodge(width=0.5, height=NULL)
+pd <- position_dodge(width=0.5) #, height=NULL)
 p <- ggplot(plotdat_control, aes(x=snp, y=beta, colour=treat))
 pdf('./plots/Mesh_allBetas_control_config.pdf', width=9, height=12)
 p + geom_abline(intercept=0, slope=0, colour='red',linetype=4) +
-    layer(geom="point", position=pd, geom_params=list(size=3.2)) +
+    ##layer(geom="point", position=pd, geom_params=list(size=3.2)) +
+    geom_point(position=pd, size=3.2) +
     geom_errorbar(aes(ymin=lb , ymax=ub), width=0.5, size=1, position=pd) +
     theme_bw() +
     coord_flip() +
@@ -109,15 +114,11 @@ dd$z.treat <- dd$beta.t/dd$se.t
 dd$z.ind <- ((dd$z.treat^2 + dd$z.con^2)>4)
 
 dd_filt <- dd[dd$post_c4<.5, ]
-dd_filt$ASE <- sapply(1:(dim(dd_filt)[1]), function(row){
-  if((dd_filt[row, 'bf_c1']-dd_filt[row, 'bf_c3'])>1 & dd_filt[row, 'bf_c1']>2){
-    'control'  ## control only ASE
-  } else if ((dd_filt[row, 'bf_c2']-dd_filt[row, 'bf_c3'])>1 & dd_filt[row, 'bf_c2']>2){
-    'treatment'  ## treatment only ASE
-  } else{
-    '~'  ## no ASE
-  }
-  })
+controlAse   <- (dd_filt$bf_c1 - dd_filt$bf_c3) > 1 & dd_filt$bf_c1 > 2
+treatmentAse <- (dd_filt$bf_c2 - dd_filt$bf_c3) > 1 & dd_filt$bf_c2 > 2
+dd_filt$ASE <- '~'
+dd_filt$ASE[ controlAse ] <- 'control'
+dd_filt$ASE[ treatmentAse ] <- 'treatment'
 
 bf.cutoff <- 2
 
@@ -135,7 +136,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_allASE_stringent_cutOff.5.pdf')
 #png('./plots/Mesh_zscores_allASE_stringent_cutOff.5.png')
 p <- ggplot(dd_filt, aes(z.con, z.treat, color=ASE))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) + 
   scale_color_manual(values=c("transparent", "blue", "red")) + 
   theme_bw() +
   theme(legend.position="bottom",
@@ -167,7 +169,8 @@ dev.off()
 ## control ASE
 pdf('./plots/Mesh_zscores_controlASE.pdf')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c1>bf.cutoff)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) +
   scale_color_manual(values=c("black", "blue")) + 
   theme_bw() +
   theme(legend.position="bottom",
@@ -183,7 +186,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_treatmentASE.pdf')
 #png('./plots/Mesh_zscores_treatmentASE.png')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c2>bf.cutoff)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) +
   scale_color_manual(values=c("black", "red")) +
   theme_bw() +
   theme(legend.position="bottom",
@@ -200,7 +204,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_controlASE_stringent1.pdf')
 #png('./plots/Mesh_zscores_controlASE_stringent1.png')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=((bf_c1-bf_c3)>1 & bf_c1>2)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) +
   scale_color_manual(values=c("black", "blue")) + 
   theme_bw() +
   theme(legend.position="bottom",
@@ -217,7 +222,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_treatmentASE_stringent1.pdf')
 #png('./plots/Mesh_zscores_treatmentASE_stringent1.png')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=((bf_c2-bf_c3)>1 & bf_c2>2)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) + 
   scale_color_manual(values=c("black", "red")) + 
   theme_bw() +
   theme(legend.position="bottom",
@@ -233,7 +239,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_controlOnlyASE.pdf')
 #png('./plots/Mesh_zscores_controlOnlyASE.png')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c1>bf.cutoff & bf_c3<bf.cutoff)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) + 
   scale_color_manual(values=c("black", "blue")) +
   theme_bw() +
   theme(legend.position="bottom",
@@ -249,7 +256,8 @@ dev.off()
 pdf('./plots/Mesh_zscores_treatmentOnlyASE.pdf')
 #png('./plots/Mesh_zscores_treatmentOnlyASE.png')
 p <- ggplot(dd[dd$z.ind, ], aes(z.con, z.treat, color=(bf_c2>bf.cutoff & bf_c3<bf.cutoff)))
-p + layer(geom="point", geom_params=list(size=2)) +
+p + #layer(geom="point", geom_params=list(size=2)) +
+  geom_point(size=2) +
   scale_color_manual(values=c("black", "red")) +
   theme_bw() +
   theme(legend.position="bottom",
