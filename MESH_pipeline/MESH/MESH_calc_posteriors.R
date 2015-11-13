@@ -30,7 +30,7 @@ n.samples <- length(parmfiles)
   config <- c(config1, config2, config3)
 
   #config <- c(0.1,0.1,0.8)
-  config <- c(0.333, 0.333, 0.333)
+  #config <- c(0.333, 0.333, 0.333)
   
   priors <- c(pi00 * config, pi0)
   sum(priors)
