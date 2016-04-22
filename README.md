@@ -3,6 +3,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
 
 ## Outline
 ### I. Align RNA-seq reads and perform QC
+<https://github.com/piquelab/GxE_pipeline/tree/master/alignment_pipeline>
   * 1.) Create directories, symbolic link to fastqs, and distribute scripts for alignment
   * 2.) Align reads, merge across barcodes, & do read counts
   * 3.) Combine read counts from all stages of filtering
