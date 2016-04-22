@@ -10,6 +10,7 @@ This repo contains scripts that comprise the Gene Environment Interaction (GxE) 
   * 5.) Make pileups for QuASAR
 
 ### II. QuASAR (EM) pipeline to infer individual ASE
+<https://github.com/piquelab/GxE_pipeline/tree/master/QuASAR_pipeline>
   * 6.) Create directories, symbolic link to pileups, and distribute scripts for QuASAR
   * 7.) Run the QuASAR pipeline for joint genotyping ASE inference   
 
